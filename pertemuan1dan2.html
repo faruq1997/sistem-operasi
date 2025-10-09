@@ -1,0 +1,249 @@
+<!-- ===== Bootstrap ===== -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- ===== Chart.js (untuk simulasi disk scheduling) ===== -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="container my-5">
+  <h2 class="fw-bold text-primary mb-4">📘 Sistem Operasi — Pertemuan 1 & 2</h2>
+  <p class="text-muted">Modul interaktif ini mencakup konsep dasar sistem operasi dan pengelolaan disk magnetik.</p>
+
+  <!-- ================== Pertemuan 1 ================== -->
+  <section class="mb-5">
+    <h4 class="text-secondary fw-bold mb-3">🧩 Pertemuan 1: Konsep Dasar Sistem Operasi</h4>
+    <p>Sistem operasi berfungsi sebagai penghubung antara <strong>user</strong> dan <strong>hardware</strong>. Klik setiap tombol untuk mempelajari konsepnya:</p>
+    
+    <!-- Tombol modal -->
+    <button class="btn btn-sm btn-primary me-2 mb-2" data-bs-toggle="modal" data-bs-target="#osModal">Apa itu Sistem Operasi?</button>
+    <button class="btn btn-sm btn-success me-2 mb-2" data-bs-toggle="modal" data-bs-target="#fungsiModal">Fungsi Utama OS</button>
+    <button class="btn btn-sm btn-warning me-2 mb-2" data-bs-toggle="modal" data-bs-target="#komponenModal">Komponen OS</button>
+  </section>
+
+  <!-- ================== Pertemuan 2 ================== -->
+  <section>
+    <h4 class="text-secondary fw-bold mb-3">💽 Pertemuan 2: Magnetic Disk & Disk Scheduling</h4>
+    <p>Disk magnetik digunakan untuk penyimpanan sekunder. OS mengatur cara membaca dan menulis data agar efisien.  
+    Pelajari konsep dan coba simulasinya di bawah ini:</p>
+
+    <!-- Tombol modal -->
+    <button class="btn btn-sm btn-info me-2 mb-2" data-bs-toggle="modal" data-bs-target="#diskModal">Struktur Disk</button>
+    <button class="btn btn-sm btn-primary me-2 mb-2" data-bs-toggle="modal" data-bs-target="#seekModal">Waktu Akses</button>
+    <button class="btn btn-sm btn-danger me-2 mb-2" data-bs-toggle="modal" data-bs-target="#schedulingModal">Algoritma Disk Scheduling</button>
+
+    <hr class="my-4">
+
+    <!-- ========== Simulasi / Game ========== -->
+    <div class="card shadow-sm p-4">
+      <h5 class="text-success mb-3">🎮 Disk Scheduling Simulation Game</h5>
+      <p class="small text-muted">Masukkan urutan permintaan track dan posisi awal head. Pilih algoritma, lalu jalankan simulasi untuk melihat hasilnya.</p>
+
+      <div class="row g-2">
+        <div class="col-md-5">
+          <label class="form-label">Daftar Request Track (pisahkan dengan koma)</label>
+          <input type="text" id="requests" class="form-control form-control-sm" placeholder="contoh: 82,170,43,140,24,16,190">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Posisi Awal Head</label>
+          <input type="number" id="start" class="form-control form-control-sm" placeholder="contoh: 50">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Pilih Algoritma</label>
+          <select id="algo" class="form-select form-select-sm">
+            <option value="FCFS">FCFS</option>
+            <option value="SSTF">SSTF</option>
+            <option value="SCAN">SCAN</option>
+            <option value="CSCAN">C-SCAN</option>
+          </select>
+        </div>
+        <div class="col-md-1 d-flex align-items-end">
+          <button class="btn btn-success btn-sm w-100" onclick="runSimulation()">Jalankan</button>
+        </div>
+      </div>
+
+      <div class="mt-4">
+        <h6>📊 Hasil Simulasi</h6>
+        <div id="result" class="border rounded p-3 bg-light" style="min-height:100px;">
+          <p class="text-muted small">Belum ada simulasi dijalankan.</p>
+        </div>
+        <canvas id="chart" height="120" class="mt-3"></canvas>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ================== MODAL PERTEMUAN 1 ================== -->
+
+<!-- 1.1 -->
+<div class="modal fade" id="osModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered"><div class="modal-content">
+    <div class="modal-header bg-primary text-white"><h5 class="modal-title">Apa itu Sistem Operasi?</h5>
+      <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <p><strong>Sistem Operasi (Operating System / OS)</strong> adalah perangkat lunak yang mengatur semua sumber daya komputer dan menyediakan layanan untuk program aplikasi.</p>
+      <ul>
+        <li>Mengelola CPU, memori, perangkat I/O, dan file.</li>
+        <li>Menjadi penghubung antara pengguna dan hardware.</li>
+        <li>Menjamin keamanan, efisiensi, dan keandalan sistem.</li>
+      </ul>
+      <div class="alert alert-info small">Contoh: Windows, Linux, macOS, Android, iOS.</div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Tutup</button></div>
+  </div></div>
+</div>
+
+<!-- 1.2 -->
+<div class="modal fade" id="fungsiModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered"><div class="modal-content">
+    <div class="modal-header bg-success text-white"><h5 class="modal-title">Fungsi Utama Sistem Operasi</h5>
+      <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <ul>
+        <li><strong>Process Management:</strong> mengatur penjadwalan dan eksekusi proses.</li>
+        <li><strong>Memory Management:</strong> mengalokasikan memori ke proses.</li>
+        <li><strong>File Management:</strong> mengatur penyimpanan dan akses file.</li>
+        <li><strong>Device Management:</strong> komunikasi dengan perangkat keras.</li>
+        <li><strong>Security:</strong> kontrol akses dan perlindungan data.</li>
+      </ul>
+    </div>
+    <div class="modal-footer"><button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Tutup</button></div>
+  </div></div>
+</div>
+
+<!-- 1.3 -->
+<div class="modal fade" id="komponenModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered"><div class="modal-content">
+    <div class="modal-header bg-warning"><h5 class="modal-title">Komponen OS</h5>
+      <button class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <ul>
+        <li><strong>Kernel:</strong> inti sistem yang mengontrol hardware.</li>
+        <li><strong>System Calls:</strong> API untuk komunikasi user program dan kernel.</li>
+        <li><strong>Device Drivers:</strong> mengontrol perangkat keras.</li>
+        <li><strong>File System:</strong> mengatur penyimpanan data.</li>
+        <li><strong>User Interface:</strong> CLI / GUI.</li>
+      </ul>
+    </div>
+    <div class="modal-footer"><button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Tutup</button></div>
+  </div></div>
+</div>
+
+<!-- ================== MODAL PERTEMUAN 2 ================== -->
+
+<!-- Disk Structure -->
+<div class="modal fade" id="diskModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered"><div class="modal-content">
+    <div class="modal-header bg-info text-white"><h5 class="modal-title">Struktur Magnetic Disk</h5>
+      <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <ul>
+        <li><strong>Platter:</strong> piringan tempat data disimpan secara magnetik.</li>
+        <li><strong>Track:</strong> lingkaran konsentris pada platter.</li>
+        <li><strong>Sector:</strong> bagian kecil dari track, unit terkecil data.</li>
+        <li><strong>Head:</strong> membaca/menulis data di permukaan platter.</li>
+        <li><strong>Arm Assembly:</strong> menggerakkan head ke track tertentu.</li>
+      </ul>
+      <div class="alert alert-info small">Kerapatan track tinggi = kapasitas disk besar.</div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Tutup</button></div>
+  </div></div>
+</div>
+
+<!-- Access Time -->
+<div class="modal fade" id="seekModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered"><div class="modal-content">
+    <div class="modal-header bg-primary text-white"><h5 class="modal-title">Waktu Akses Disk</h5>
+      <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <ul>
+        <li><strong>Seek Time:</strong> waktu head berpindah ke track target.</li>
+        <li><strong>Rotational Latency:</strong> waktu menunggu sektor berputar ke posisi head.</li>
+        <li><strong>Transfer Time:</strong> waktu untuk memindahkan data.</li>
+      </ul>
+      <pre class="bg-light p-2 border rounded small">Total Access Time = Seek Time + Rotational Latency + Transfer Time</pre>
+    </div>
+    <div class="modal-footer"><button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Tutup</button></div>
+  </div></div>
+</div>
+
+<!-- Disk Scheduling -->
+<div class="modal fade" id="schedulingModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered"><div class="modal-content">
+    <div class="modal-header bg-danger text-white"><h5 class="modal-title">Algoritma Disk Scheduling</h5>
+      <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <h6>Algoritma utama:</h6>
+      <ul>
+        <li><strong>FCFS (First Come First Serve):</strong> sesuai urutan kedatangan.</li>
+        <li><strong>SSTF (Shortest Seek Time First):</strong> pilih permintaan terdekat.</li>
+        <li><strong>SCAN:</strong> head bergerak bolak-balik seperti lift.</li>
+        <li><strong>C-SCAN:</strong> versi melingkar dari SCAN (head kembali ke awal tanpa melayani).</li>
+      </ul>
+      <div class="alert alert-success small">Tujuan: meminimalkan rata-rata <em>seek time</em> dan meningkatkan throughput.</div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Tutup</button></div>
+  </div></div>
+</div>
+
+<!-- ================== JAVASCRIPT: GAME SIMULASI ================== -->
+<script>
+function runSimulation() {
+  const reqInput = document.getElementById('requests').value;
+  const start = parseInt(document.getElementById('start').value);
+  const algo = document.getElementById('algo').value;
+  if (!reqInput || isNaN(start)) return alert("Masukkan data valid.");
+
+  const requests = reqInput.split(',').map(v => parseInt(v.trim())).filter(v => !isNaN(v));
+  let sequence = [];
+  let totalMovement = 0;
+  let current = start;
+  let pending = [...requests];
+
+  // === Algoritma ===
+  if (algo === 'FCFS') {
+    sequence = [start, ...pending];
+    for (let i = 0; i < pending.length; i++)
+      totalMovement += Math.abs(pending[i] - (i === 0 ? start : pending[i - 1]));
+  } else if (algo === 'SSTF') {
+    sequence.push(start);
+    while (pending.length > 0) {
+      let nearest = pending.reduce((a, b) => Math.abs(b - current) < Math.abs(a - current) ? b : a);
+      totalMovement += Math.abs(nearest - current);
+      current = nearest;
+      sequence.push(current);
+      pending.splice(pending.indexOf(nearest), 1);
+    }
+  } else if (algo === 'SCAN' || algo === 'CSCAN') {
+    pending.push(current);
+    pending.sort((a, b) => a - b);
+    const idx = pending.indexOf(current);
+    let left = pending.slice(0, idx).reverse();
+    let right = pending.slice(idx + 1);
+    if (algo === 'SCAN') sequence = [...right, ...left];
+    else sequence = [...right, ...left.reverse()];
+    sequence.unshift(start);
+    totalMovement = Math.abs(sequence[sequence.length - 1] - start);
+  }
+
+  const resultDiv = document.getElementById('result');
+  resultDiv.innerHTML = `
+    <strong>Algoritma:</strong> ${algo}<br>
+    <strong>Urutan Head:</strong> ${[start, ...sequence].join(' → ')}<br>
+    <strong>Total Pergerakan Head:</strong> ${totalMovement} track units
+  `;
+
+  const ctx = document.getElementById('chart').getContext('2d');
+  if (window.diskChart) window.diskChart.destroy();
+  window.diskChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: sequence.map((_, i) => i),
+      datasets: [{ label: 'Posisi Head', data: sequence, borderWidth: 2, tension: 0.3 }]
+    },
+    options: {
+      plugins: { legend: { display: false } },
+      scales: { y: { title: { display: true, text: 'Track Position' } } }
+    }
+  });
+}
+</script>
