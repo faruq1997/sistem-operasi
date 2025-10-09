@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Penjadwalan Proses — Bubble Simulation</title>
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <!-- jQuery -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <!-- Bootstrap Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <style>
+    :root{
+      --bg: #f6f8fb;
+      --panel: #ffffff;
+      --cpu: #0d6efd;
+      --queue: #eef5ff;
+      --done: #ecfff2;
+      --border: rgba(0,0,0,.06);
+    }
+    body { background: var(--bg); }
+    .navbar-brand { font-weight: 700; }
+    .card { border: 1px solid var(--border); }
+    .badge-proc { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+
+    /* Stage */
+    .stage {
+      background: var(--panel);
+      border: 1px dashed rgba(13,110,253,.25);
+      border-radius: .75rem;
+      position: relative;
+      min-height: 360px;
+      overflow: hidden;
+    }
+    .lane {
+      position: absolute;
+      top: 0; bottom: 0;
+      padding: .75rem;
+      display: flex;
+      flex-direction: column;
+      gap: .5rem;
+    }
+    .lane .title { font-weight: 600; }
+    .lane-queue   { left: 0; width: 36%; background: var(--queue); border-right: 1px dashed rgba(13,110,253,.25); }
+    .lane-cpu     { left: 36%; width: 28%; background: #fff; display:flex; align-items:center; justify-content:center; text-align: center; }
+    .lane-done    { left: 64%; width: 36%; background: var(--done); border-left: 1px dashed rgba(25,135,84,.25); }
+    .cpu-circle {
+      width: 130px; height: 130px;
+      background: radial-gradient(ellipse at center, rgba(13,110,253,.15), rgba(13,110,253,.05));
+      border: 2px solid var(--cpu);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--cpu); font-weight: 700;
+      user-select: none;
+    }
+    .bubble {
+      position: absolute;
+      min-width: 56px; height: 56px; padding: 6px 10px;
+      border-radius: 999px;
+      display: inline-flex; gap: .35rem; align-items: center; justify-content: center;
+      color: #fff; font-weight: 700; font-size: 14px;
+      box-shadow: 0 8px 22px rgba(0,0,0,.08);
+      border: 2px solid rgba(255,255,255,.65);
+      cursor: default;
+      user-select: none;
+      transition: transform .3s ease, box-shadow .3s ease, opacity .3s ease;
+      white-space: nowrap;
+    }
+    .bubble .ico{ font-size: 16px; opacity: .95 }
+    .bubble.run { box-shadow: 0 12px 30px rgba(13,110,253,.28); transform: scale(1.07); }
+    .bubble.done { opacity: .9; }
+    .legend .chip{
+      display:inline-flex; align-items:center; gap:.35rem; padding:.15rem .5rem;
+      background:#fff; border:1px solid var(--border); border-radius:999px; margin-right:.35rem; margin-bottom:.35rem;
+    }
+    .legend .dot{ width:14px; height:14px; border-radius:50%; display:inline-block; }
+    .gantt { position: relative; background: #fff; border: 1px solid #e5e7eb; border-radius: .5rem; padding: .75rem; overflow-x: auto; }
+    .gantt-track { display: flex; gap: .25rem; min-width: 600px; }
+    .gantt-block { border-radius: .25rem; border: 1px solid rgba(0,0,0,.08); padding: .25rem .5rem; font-weight: 600; white-space: nowrap; background: #f8f9fb; }
+    .hint { color:#6c757d; }
+    .narration { min-height: 48px; }
+    .tooltip-inner { text-align: left; }
+    @media (max-width: 992px){
+      .lane-queue, .lane-cpu, .lane-done { position: relative; width: 100%; left: 0; min-height: 140px; }
+      .stage { min-height: 600px; }
+      .cpu-circle { width: 108px; height: 108px; }
+    }
+  </style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg bg-primary navbar-dark">
+  <div class="container">
+    <a class="navbar-brand" href="#">SO • Penjadwalan Proses</a>
+    <span class="navbar-text small">Bubble Animation • Mode Aplikasi Nyata</span>
+  </div>
+</nav>
+
+<div class="container my-4">
+
+  <!-- Header -->
+  <div class="row g-3">
+    <div class="col-12 col-lg-8">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h3 class="card-title mb-2">Tujuan Pembelajaran</h3>
+          <ul class="mb-2">
+            <li>Memahami <span data-bs-toggle="tooltip" title="Penjadwalan: cara OS menentukan urutan proses jalan, kapan, dan berapa lama.">konsep penjadwalan</span> & <span data-bs-toggle="tooltip" title="Kriteria: fairness, utilisasi, response time, turnaround, throughput.">kriteria evaluasi</span>.</li>
+            <li>Mensimulasikan algoritma: <span class="badge bg-secondary">FCFS</span> <span class="badge bg-secondary">SJF</span> <span class="badge bg-secondary">SRTF</span> <span class="badge bg-secondary">Priority</span> <span class="badge bg-secondary">Round Robin</span>.</li>
+            <li>Menganalisis metrik: <span data-bs-toggle="tooltip" title="Turnaround: total waktu sejak proses datang sampai selesai.">turnaround</span>, <span data-bs-toggle="tooltip" title="Waiting: waktu menunggu di antrian sebelum berjalan.">waiting</span>, <span data-bs-toggle="tooltip" title="Response: waktu dari datang sampai pertama kali mulai dikerjakan.">response</span>, <span data-bs-toggle="tooltip" title="Throughput: berapa proses selesai per satuan waktu.">throughput</span>.</li>
+          </ul>
+          <div class="small text-muted">Materi merujuk pada <em>Pertemuan 3 — Penjadwalan Proses</em> (antrian, prioritas, preempsi, kriteria, rumus, contoh FCFS & SJF)【8†328-P03.pdf†L1-L190】.</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-lg-4">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">Analogi Aplikasi Nyata</h5>
+          <p class="mb-2"><span data-bs-toggle="tooltip" title="CPU adalah otak yang mengeksekusi instruksi—ibarat dosen yang membimbing.">CPU</span> = dosen; <span data-bs-toggle="tooltip" title="Proses: program yang sedang menunggu/berjalan—ibarat mahasiswa antri bimbingan.">aplikasi</span> = mahasiswa.</p>
+          <ul class="mb-0">
+            <li><strong>FCFS</strong>: datang duluan, dilayani duluan.</li>
+            <li><strong>SJF</strong>: yang paling cepat didahulukan.</li>
+            <li><strong>SRTF</strong>: sisa waktu tersingkat boleh memotong.</li>
+            <li><strong>Priority</strong>: prioritas lebih tinggi dulu.</li>
+            <li><strong>RR</strong>: jatah waktu bergilir
+<button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#quantumModal">
+  Apa itu Quantum (RR)?
+</button>.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mode Switch -->
+  <div class="card shadow-sm my-3">
+    <div class="card-body d-flex flex-wrap gap-2 align-items-center">
+      <div class="me-auto">
+        <span class="badge text-bg-primary">Mode:</span>
+        <span id="modeLabel" class="ms-2 fw-semibold">Kampus (A, B, C…)</span>
+      </div>
+      <div class="btn-group" role="group" aria-label="Mode">
+        <button class="btn btn-outline-primary" id="modeCampus"><i class="bi bi-people me-1"></i> Mode Kampus</button>
+        <button class="btn btn-primary" id="modeApps"><i class="bi bi-laptop me-1"></i> Mode Aplikasi Nyata</button>
+      </div>
+      <div class="ms-2">
+        <label class="form-label mb-0 me-2">Kecepatan</label>
+        <select class="form-select d-inline-block" id="speed" style="width:140px">
+          <option value="1000" selected>1.0s/unit (disarankan)</option>
+          <option value="700">0.7s/unit</option>
+          <option value="500">0.5s/unit</option>
+          <option value="300">0.3s/unit</option>
+        </select>
+      </div>
+    </div>
+  </div>
+  
+    <!-- Theory -->
+  <div class="accordion my-4" id="theory">
+    <div class="accordion-item">
+      <h2 class="accordion-header"><button class="accordion-button" data-bs-toggle="collapse" data-bs-target="#t1">Konsep, Kriteria, & Istilah</button></h2>
+      <div id="t1" class="accordion-collapse collapse show" data-bs-parent="#theory">
+        <div class="accordion-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <h6 class="text-uppercase text-muted">Konsep</h6>
+              <ul>
+                <li><span data-bs-toggle="tooltip" title="Penjadwalan: kebijakan & mekanisme OS untuk menentukan urutan proses berjalan.">Penjadwalan</span> menentukan proses mana yang jalan, kapan, dan berapa lama.</li>
+              </ul>
+              <h6 class="text-uppercase text-muted mt-3">Kriteria</h6>
+              <ul>
+                <li><span data-bs-toggle="tooltip" title="Fairness: semua proses dapat giliran wajar.">Fairness</span>, <span data-bs-toggle="tooltip" title="Utilisasi: seberapa sibuk CPU—harapannya tinggi.">Utilisasi</span>, <span data-bs-toggle="tooltip" title="Response time: waktu dari datang hingga pertama kali mulai diproses.">Response</span>, <span data-bs-toggle="tooltip" title="Turnaround: total waktu proses berada di sistem hingga selesai.">Turnaround</span>, <span data-bs-toggle="tooltip" title="Throughput: jumlah proses selesai per unit waktu.">Throughput</span>.</li>
+              </ul>
+			  <div class="container my-4">
+  <div class="table-responsive">
+    <table class="table table-striped table-bordered align-middle">
+      <thead class="table-dark text-center">
+        <tr>
+          <th>Konsep</th>
+          <th>Saat Buka Word</th>
+          <th>Analogi Kampus</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Arrival Time</strong></td>
+          <td>Saat kamu klik ikon Word</td>
+          <td>Mahasiswa datang ke ruang dosen</td>
+        </tr>
+        <tr>
+          <td><strong>Burst Time</strong></td>
+          <td>Lama Word memproses tugas</td>
+          <td>Lama dosen membimbing</td>
+        </tr>
+        <tr>
+          <td><strong>Priority</strong></td>
+          <td>Nilai penting Word dibanding proses lain</td>
+          <td>Mahasiswa sidang lebih prioritas</td>
+        </tr>
+        <tr>
+          <td><strong>Waiting Time</strong></td>
+          <td>Waktu tunggu sebelum CPU melayani Word</td>
+          <td>Waktu menunggu giliran bimbingan</td>
+        </tr>
+        <tr>
+          <td><strong>Turnaround Time</strong></td>
+          <td>Total waktu dari klik sampai Word siap</td>
+          <td>Total waktu dari datang sampai selesai bimbingan</td>
+        </tr>
+        <tr>
+          <td><strong>Response Time</strong></td>
+          <td>Saat splash screen muncul</td>
+          <td>Dosen menyapa dulu</td>
+        </tr>
+        <tr>
+          <td><strong>Throughput</strong></td>
+          <td>Banyaknya aplikasi selesai diproses</td>
+          <td>Banyaknya mahasiswa selesai dibimbing</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+            </div>
+            <div class="col-md-6">
+              <h6 class="text-uppercase text-muted">Istilah & Rumus</h6>
+              <ul>
+                <li><span data-bs-toggle="tooltip" title="Antrian: daftar proses menunggu giliran—ibarat antrean mahasiswa di depan ruang dosen.">Antrian</span>, <span data-bs-toggle="tooltip" title="Prioritas: tingkat kepentingan proses—angka kecil = lebih penting.">Prioritas</span>, <span data-bs-toggle="tooltip" title="Preemption: proses penting boleh memotong giliran proses lain.">Preemption</span>.</li>
+                <li><span data-bs-toggle="tooltip" title="Burst time (t): lama proses dijalankan oleh CPU.">t</span>, <span data-bs-toggle="tooltip" title="Turnaround (T): total waktu dari datang sampai selesai.">T</span>, <span data-bs-toggle="tooltip" title="Rata-rata waktu tanggap (Tr) = rata-rata T untuk semua proses.">Tr</span>, <span data-bs-toggle="tooltip" title="Rasio tanggap (Rt) = t/T, Rasio penalti (Rp) = T/t.">Rt/Rp</span>.</li>
+              </ul>
+              <div class="hint">Turnaround = selesai − datang; Waiting = turnaround − burst; Response = mulai pertama − datang.</div>
+            </div>
+          </div>
+          <div class="small text-muted mt-2">Rujukan materi sesuai slide PDF (deskripsi penjadwalan, kriteria, tipe, istilah, rumus, contoh FCFS/SJF)【8†328-P03.pdf†L1-L190】.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <h4 class="card-title mb-3">Simulator + Bubble Animation</h4>
+      <form id="procForm" class="row gy-2 gx-2">
+        <div class="col-6 col-md-2">
+          <label class="form-label">Nama <span data-bs-toggle="tooltip" title="Label proses, misalnya A, B, C atau nama aplikasi.">ⓘ</span></label>
+          <input type="text" class="form-control" id="pName" placeholder="A" />
+        </div>
+        <div class="col-6 col-md-2">
+          <label class="form-label">Arrival <span data-bs-toggle="tooltip" title="Waktu proses masuk ke sistem.">ⓘ</span></label>
+          <input type="number" class="form-control" id="pArrival" min="0" value="0" />
+        </div>
+        <div class="col-6 col-md-2">
+          <label class="form-label">Burst <span data-bs-toggle="tooltip" title="Lama proses dijalankan CPU (t) [misal Word sedang render halaman].">ⓘ</span></label>
+          <input type="number" class="form-control" id="pBurst" min="1" value="5" />
+        </div>
+        <div class="col-6 col-md-2">
+          <label class="form-label">Priority <span data-bs-toggle="tooltip" title="Angka kecil = lebih prioritas (untuk algoritma Priority). [misalnya proses sistem (Explorer) lebih penting daripada hiburan (YouTube tab)]">ⓘ</span></label>
+          <input type="number" class="form-control" id="pPriority" min="1" value="1" />
+        </div>
+        <div class="col-12 col-md-4 d-grid d-md-flex gap-2 align-items-end">
+          <button type="button" id="addProc" class="btn btn-outline-secondary">Tambah Proses</button>
+          <button type="button" id="addSample" class="btn btn-outline-secondary" data-bs-toggle="tooltip" title="Dataset contoh dari slide PDF: A(0,4), B(1,7), C(3,3), D(7,8).">Contoh (PDF)</button>
+          <button type="button" id="addRandom" class="btn btn-outline-dark" data-bs-toggle="tooltip" title="Generate dataset acak.">Acak</button>
+          <button type="button" id="resetProc" class="btn btn-link text-danger">Reset</button>
+        </div>
+      </form>
+
+      <div class="table-responsive mt-3">
+        <table class="table table-sm align-middle" id="procTable">
+          <thead class="table-light">
+            <tr>
+              <th>Nama</th>
+              <th>Arrival</th>
+              <th>Burst</th>
+              <th>Priority</th>
+              <th class="text-end">Aksi</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="row g-2 mt-3">
+        <div class="col-md-6">
+          <label class="form-label">Algoritma</label>
+          <select class="form-select" id="algo">
+            <option value="FCFS">FCFS (First Come First Served)</option>
+            <option value="SJF">SJF (Shortest Job First — Non-preemptive)</option>
+            <option value="SRTF">SRTF (Shortest Remaining Time First — Preemptive)</option>
+            <option value="PRIO">Priority (Non-preemptive, angka kecil = lebih prioritas)</option>
+            <option value="RR">Round Robin</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Quantum (RR) <span data-bs-toggle="tooltip" title="Jatah waktu bergilir setiap proses pada Round Robin. [atau sederhananya aturan waktu (software level) yang digunakan sistem operasi untuk membagi penggunaan CPU secara adil antar proses. Biasanya ms (milisecond)]">ⓘ</span></label>
+          <input type="number" class="form-control" id="quantum" value="2" min="1">
+        </div>
+        <div class="col-md-3 d-grid">
+          <button id="runSim" class="btn btn-success mt-4 mt-md-0">Jalankan Simulasi</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bubble Stage -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <h5 class="card-title mb-3">Visualisasi Bubble (Antrian → CPU → Selesai)</h5>
+      <div class="stage" id="stage">
+        <div class="lane lane-queue" id="laneQueue">
+          <div class="title mb-2">Antrian <span data-bs-toggle="tooltip" title="Daftar proses/aplikasi yang menunggu giliran.">ⓘ</span></div>
+        </div>
+        <div class="lane lane-cpu" id="laneCpu">
+          <div class="cpu-circle">
+            <span data-bs-toggle="tooltip" title="Area CPU: tempat proses/aplikasi dieksekusi.">CPU</span>
+          </div>
+        </div>
+        <div class="lane lane-done" id="laneDone">
+          <div class="title mb-2">Selesai <span data-bs-toggle="tooltip" title="Proses/aplikasi yang sudah rampung.">ⓘ</span></div>
+        </div>
+      </div>
+      <div class="legend mt-3">
+        <span class="chip"><span class="dot" style="background:#0d6efd"></span> Eksekusi</span>
+        <span class="chip"><span class="dot" style="background:#20c997"></span> Menunggu</span>
+        <span class="chip"><span class="dot" style="background:#6f42c1"></span> Selesai</span>
+        <span class="chip"><span class="dot" style="background:#fd7e14"></span> Preempt</span>
+      </div>
+      <div class="mt-3 narration alert alert-secondary py-2" id="narration">Narasi eksekusi akan tampil di sini.</div>
+      <div class="hint">Kecepatan animasi mengikuti pengaturan “Kecepatan”. 1 unit waktu ≈ pilihanmu (default 1 detik).</div>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div class="row g-3">
+    <div class="col-md-6">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h6>Ringkasan Metrik</h6>
+          <ul id="summary" class="mb-0"></ul>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h6>Per-Proses</h6>
+          <div class="table-responsive">
+            <table class="table table-sm" id="resultTable">
+              <thead class="table-light">
+                <tr>
+                  <th>Proses</th><th>Mulai</th><th>Selesai</th><th>Turnaround</th><th>Waiting</th><th>Response</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gantt (optional visual aid) -->
+  <div class="card shadow-sm mt-3">
+    <div class="card-body">
+      <h6>Gantt Chart (Ringkas)</h6>
+      <div class="gantt">
+        <div class="gantt-track" id="ganttTrack"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Game -->
+  <div class="card shadow-sm my-4">
+    <div class="card-body">
+      <h4 class="card-title mb-2">Game: Tebak Urutan Eksekusi</h4>
+      <p class="mb-2">Sistem membuat <strong>N proses acak</strong>. Pilih algoritma, lalu tebak urutan eksekusi (per-slice). Skor +1 untuk tiap posisi benar.</p>
+      <div class="row g-2 align-items-end">
+        <div class="col-md-2">
+          <label class="form-label">Jumlah Proses</label>
+          <input type="number" id="gameN" class="form-control" value="5" min="3" max="10">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Algoritma</label>
+          <select class="form-select" id="gameAlgo">
+            <option value="FCFS">FCFS</option>
+            <option value="SJF">SJF</option>
+            <option value="SRTF">SRTF</option>
+            <option value="PRIO">Priority</option>
+            <option value="RR">Round Robin</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Quantum (RR)</label>
+          <input type="number" class="form-control" id="gameQ" value="2" min="1">
+        </div>
+        <div class="col-md-3 d-grid">
+          <button class="btn btn-primary" id="startGame">Mulai Game</button>
+        </div>
+      </div>
+
+      <div class="mt-3">
+        <h6>Dataset Game</h6>
+        <div class="table-responsive">
+          <table class="table table-sm" id="gameTable">
+            <thead class="table-light"><tr><th>Proses</th><th>Arrival</th><th>Burst</th><th>Priority</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="mt-2">
+        <h6>Pilih Urutan Eksekusi</h6>
+        <div id="gameChoices" class="d-flex flex-wrap gap-2"></div>
+        <div class="mt-2">
+          <div id="gameSelected" class="d-flex flex-wrap gap-2"></div>
+        </div>
+        <div class="mt-3 d-flex gap-2">
+          <button class="btn btn-outline-secondary" id="gameReset">Reset Pilihan</button>
+          <button class="btn btn-success" id="gameCheck">Cek Jawaban</button>
+        </div>
+        <div class="mt-3">
+          <div id="gameResult" class="alert d-none"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<!-- Modal Penjelasan Lengkap -->
+<div class="modal fade" id="quantumModal" tabindex="-1" aria-labelledby="quantumModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="quantumModalLabel">Penjelasan Quantum pada Algoritma Round Robin (RR)</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body">
+        <p><strong>Quantum (atau Time Slice)</strong> adalah batas waktu maksimum yang diberikan CPU untuk menjalankan <em>satu proses</em> sebelum scheduler memindahkan giliran ke proses lain. Konsep ini digunakan pada algoritma <strong>Round Robin (RR)</strong>.</p>
+
+        <div class="alert alert-info small">
+          <strong>Analogi:</strong> Bayangkan dosen memberi waktu bimbingan 10 menit per mahasiswa.  
+          Setelah 10 menit, dosen beralih ke mahasiswa berikutnya.  
+          Jadi, <strong>Quantum = waktu bimbingan</strong>, dan <strong>CPU = dosennya</strong>.
+        </div>
+
+        <h6 class="mt-3">⚙️ Quantum vs Core CPU</h6>
+        <ul>
+          <li><strong>Quantum</strong> → Aturan waktu di level <em>software (scheduler OS)</em>.</li>
+          <li><strong>Core CPU</strong> → Unit fisik di level <em>hardware</em> yang menjalankan instruksi.</li>
+        </ul>
+
+        <p><strong>Artinya:</strong> Quantum bukan bagian dari CPU dan tidak menunjukkan kecanggihannya.  
+        CPU yang lebih cepat hanya mengeksekusi lebih banyak instruksi dalam waktu yang sama, tetapi durasi Quantum tetap diatur oleh sistem operasi.</p>
+
+        <div class="alert alert-warning small">
+          <strong>Kesalahpahaman umum:</strong> Banyak yang mengira “semakin besar Quantum berarti CPU semakin canggih”.  
+          Padahal, Quantum hanyalah <em>parameter waktu</em> dalam kebijakan penjadwalan, bukan ukuran kekuatan CPU.
+        </div>
+
+        <h6>🧩 Contoh Round Robin</h6>
+        <pre class="bg-light p-2 border rounded small">
+Proses: P1 (20ms), P2 (10ms), P3 (15ms)
+Quantum: 5ms
+
+Eksekusi CPU:
+0–5   → P1
+5–10  → P2
+10–15 → P3
+15–20 → P1 (lanjutan)
+20–25 → P2 (selesai)
+25–30 → P3 (lanjutan)
+        </pre>
+
+        <h6>📊 Pengaruh Ukuran Quantum</h6>
+        <table class="table table-sm table-bordered align-middle">
+          <thead class="table-secondary text-center">
+            <tr>
+              <th>Quantum Terlalu Kecil</th>
+              <th>Quantum Terlalu Besar</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Banyak <em>context switch</em> (overhead tinggi)</td>
+              <td>Mirip FCFS (proses lama bisa monopoli CPU)</td>
+            </tr>
+            <tr>
+              <td>Respons sistem cepat, tapi efisiensi rendah</td>
+              <td>Efisiensi tinggi, tapi respons interaktif lambat</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h6 class="mt-3">⚡ Kapan Quantum Besar atau Kecil Digunakan?</h6>
+        <ul class="small">
+          <li><strong>Quantum kecil:</strong> cocok untuk sistem interaktif (misal OS desktop, mobile UI).</li>
+          <li><strong>Quantum besar:</strong> cocok untuk batch processing atau sistem server non-interaktif.</li>
+        </ul>
+
+        <h6 class="mt-3">🧠 Ringkasan</h6>
+        <ul class="small">
+          <li>Quantum diatur oleh <strong>scheduler OS</strong>, bukan hardware CPU.</li>
+          <li>CPU yang “canggih” punya lebih banyak core, kecepatan clock tinggi, dan arsitektur efisien — bukan Quantum besar.</li>
+          <li>Tujuan utama Quantum: menjaga <strong>fairness</strong> dan <strong>responsivitas</strong> sistem multitasking.</li>
+        </ul>
+
+        <div class="alert alert-success small">
+          <strong>Kesimpulan:</strong>  
+          Besar kecilnya <em>Quantum</em> tidak mencerminkan kecanggihan CPU.  
+          Quantum hanyalah cara sistem operasi membagi waktu CPU agar semua proses mendapat giliran adil.
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Tutup</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+/* ====== TOOLTIP INIT ====== */
+(() => { document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => new bootstrap.Tooltip(el)); })();
+
+/* ====== UTIL ====== */
+const clone = (o) => JSON.parse(JSON.stringify(o));
+const avg = (a) => a.reduce((x,y)=>x+y,0) / (a.length||1);
+const randColor = (seed) => {
+  const palette = {
+    browser: '#2b8aef',
+    office: '#28a745',
+    util:   '#f59f00'
+  };
+  return palette[seed] || `hsl(${(seed.charCodeAt(0)*53)%360},70%,55%)`;
+};
+const iconFor = (name) => {
+  const n = name.toLowerCase();
+  if(n.includes('chrome')) return '<i class="bi bi-globe2 ico"></i>';
+  if(n.includes('word')) return '<i class="bi bi-filetype-doc ico"></i>';
+  if(n.includes('excel')) return '<i class="bi bi-filetype-xls ico"></i>';
+  if(n.includes('explorer')) return '<i class="bi bi-folder2-open ico"></i>';
+  if(n.includes('foxit')) return '<i class="bi bi-filetype-pdf ico"></i>';
+  return '<i class="bi bi-app ico"></i>';
+};
+
+/* ====== STATE ====== */
+let processes = [];
+let mode = 'campus'; // campus | apps
+
+/* ====== TABLE RENDER ====== */
+function renderTable(){
+  const $tb = $("#procTable tbody").empty();
+  processes.forEach((p,i)=>{
+    const tr = $(`<tr>
+      <td><span class="badge text-bg-dark badge-proc">${p.name}</span></td>
+      <td>${p.arrival}</td>
+      <td>${p.burst}</td>
+      <td>${p.priority ?? '-'}</td>
+      <td class="text-end"><button class="btn btn-sm btn-outline-danger" data-i="${i}">Hapus</button></td>
+    </tr>`);
+    tr.find("button").on("click", ()=>{ processes.splice(i,1); renderTable(); });
+    $tb.append(tr);
+  });
+  // toggle manual inputs
+  const disabled = (mode==='apps');
+  $("#pName, #pArrival, #pBurst, #pPriority, #addProc, #addRandom").prop("disabled", disabled);
+}
+
+/* ====== DATASETS ====== */
+function loadCampusSample(){
+  processes = [
+    {name:"A", arrival:0, burst:4, priority:1, category:"office"},
+    {name:"B", arrival:1, burst:7, priority:1, category:"office"},
+    {name:"C", arrival:3, burst:3, priority:1, category:"office"},
+    {name:"D", arrival:7, burst:8, priority:1, category:"office"},
+  ];
+  renderTable();
+}
+function loadAppsSample(){
+  processes = [
+    {name:"Chrome Tab 1 (Elearning)",            arrival:0, burst:5, priority:2, category:"browser"},
+    {name:"Chrome Tab 2 (Student.NusaMandiri)",  arrival:1, burst:3, priority:2, category:"browser"},
+    {name:"Word",                                 arrival:2, burst:6, priority:3, category:"office"},
+    {name:"Windows Explorer",                     arrival:3, burst:2, priority:1, category:"util"},
+    {name:"Foxit Reader",                         arrival:4, burst:4, priority:3, category:"util"},
+    {name:"Excel",                                arrival:5, burst:5, priority:2, category:"office"},
+    {name:"Chrome Tab 3 (YT)",                    arrival:6, burst:7, priority:4, category:"browser"},
+  ];
+  renderTable();
+}
+
+/* ====== MODE SWITCH ====== */
+$("#modeCampus").on("click", ()=>{
+  mode='campus'; $("#modeLabel").text("Kampus (A, B, C…)"); loadCampusSample();
+});
+$("#modeApps").on("click", ()=>{
+  mode='apps'; $("#modeLabel").text("Aplikasi Nyata"); loadAppsSample();
+});
+
+/* ====== ADD/RESET ====== */
+$("#addProc").on("click", ()=>{
+  const name = $("#pName").val() || String.fromCharCode(65 + processes.length);
+  const arrival = parseInt($("#pArrival").val(),10) || 0;
+  const burst = Math.max(1, parseInt($("#pBurst").val(),10) || 1);
+  const priority = parseInt($("#pPriority").val(),10);
+  processes.push({name, arrival, burst, priority: isNaN(priority)?null:priority, category:"office"});
+  renderTable();
+});
+$("#addSample").on("click", loadCampusSample);
+$("#addRandom").on("click", ()=>{
+  const n = 5 + Math.floor(Math.random()*3);
+  processes = [];
+  for(let i=0;i<n;i++){
+    processes.push({
+      name: String.fromCharCode(65+i),
+      arrival: Math.floor(Math.random()*6),
+      burst: 1 + Math.floor(Math.random()*8),
+      priority: 1 + Math.floor(Math.random()*4),
+      category:"office"
+    });
+  }
+  renderTable();
+});
+$("#resetProc").on("click", ()=>{ processes = []; renderTable(); });
+
+/* ====== SCHEDULERS ====== */
+function schedule_FCFS(procs){
+  const p = clone(procs).sort((a,b)=> a.arrival - b.arrival);
+  let t = 0;
+  const timeline=[], perProc={};
+  p.forEach(proc=>{
+    const start = Math.max(t, proc.arrival);
+    const end = start + proc.burst;
+    if(!(proc.name in perProc)) perProc[proc.name] = {start, response:start-proc.arrival};
+    timeline.push({name:proc.name,start,end});
+    t = end;
+  });
+  return finalize(procs, timeline, perProc, 'FCFS');
+}
+function schedule_SJF(procs){
+  const p = clone(procs);
+  let t = Math.min(...p.map(x=>x.arrival));
+  const timeline=[], perProc={};
+  while(p.length){
+    const ready = p.filter(x=>x.arrival<=t);
+    if(!ready.length){ t = Math.min(...p.map(x=>x.arrival)); continue; }
+    ready.sort((a,b)=> a.burst - b.burst || a.arrival - b.arrival);
+    const cur = ready[0];
+    const start = t, end = start + cur.burst;
+    if(!(cur.name in perProc)) perProc[cur.name] = {start, response:start-cur.arrival};
+    timeline.push({name:cur.name,start,end});
+    t = end;
+    const idx = p.findIndex(x=>x===cur); p.splice(idx,1);
+  }
+  return finalize(procs, timeline, perProc, 'SJF');
+}
+function schedule_SRTF(procs){
+  const p = clone(procs).map(x=>({...x, remain:x.burst}));
+  const timeline=[], perProc={};
+  let t = Math.min(...p.map(x=>x.arrival));
+  let current=null;
+  while(true){
+    const arrived = p.filter(x=>x.arrival<=t && x.remain>0);
+    if(!arrived.length){
+      if(p.every(x=>x.remain<=0)) break;
+      t = Math.min(...p.filter(x=>x.remain>0).map(x=>x.arrival));
+      continue;
+    }
+    arrived.sort((a,b)=> a.remain - b.remain || a.arrival - b.arrival);
+    if(current !== arrived[0]){
+      current = arrived[0];
+      timeline.push({name:current.name,start:t,end:t});
+      if(!(current.name in perProc)) perProc[current.name] = {start:t, response:t-current.arrival};
+    }
+    current.remain -= 1; t += 1; timeline[timeline.length-1].end = t;
+  }
+  // merge adjacent
+  const merged=[];
+  for(const seg of timeline){
+    const last = merged[merged.length-1];
+    if(last && last.name===seg.name && last.end===seg.start){ last.end = seg.end; } else merged.push(seg);
+  }
+  return finalize(procs, merged, perProc, 'SRTF');
+}
+function schedule_PRIO(procs){
+  const p = clone(procs);
+  let t = Math.min(...p.map(x=>x.arrival));
+  const timeline=[], perProc={};
+  while(p.length){
+    const ready = p.filter(x=>x.arrival<=t);
+    if(!ready.length){ t = Math.min(...p.map(x=>x.arrival)); continue; }
+    ready.sort((a,b)=> (a.priority??999) - (b.priority??999) || a.arrival - b.arrival);
+    const cur = ready[0];
+    const start=t, end=start+cur.burst;
+    if(!(cur.name in perProc)) perProc[cur.name] = {start, response:start-cur.arrival};
+    timeline.push({name:cur.name,start,end});
+    t=end;
+    const idx=p.findIndex(x=>x===cur); p.splice(idx,1);
+  }
+  return finalize(procs, timeline, perProc, 'PRIO');
+}
+function schedule_RR(procs, q){
+  const p = clone(procs).sort((a,b)=> a.arrival - b.arrival).map(x=>({...x, remain:x.burst}));
+  let t = Math.min(...p.map(x=>x.arrival));
+  const queue=[], timeline=[], perProc={};
+  const arrived = (time)=> p.filter(x=>x.arrival<=time && x.remain>0 && !queue.includes(x));
+  queue.push(...arrived(t).sort((a,b)=> a.arrival-b.arrival));
+  while(queue.length || p.some(x=>x.remain>0)){
+    if(!queue.length){
+      t = Math.min(...p.filter(x=>x.remain>0).map(x=>x.arrival));
+      queue.push(...arrived(t));
+      continue;
+    }
+    const cur = queue.shift();
+    const start = Math.max(t, cur.arrival);
+    if(!(cur.name in perProc)) perProc[cur.name] = {start, response:start-cur.arrival};
+    const run = Math.min(q, cur.remain);
+    const end = start + run;
+    timeline.push({name:cur.name,start,end});
+    cur.remain -= run; t = end;
+    const newly = p.filter(x=>x.arrival>start && x.arrival<=end && x.remain>0 && !queue.includes(x));
+    newly.sort((a,b)=> a.arrival-b.arrival); queue.push(...newly);
+    if(cur.remain>0) queue.push(cur);
+  }
+  // merge adjacent
+  const merged=[];
+  for(const seg of timeline){
+    const last = merged[merged.length-1];
+    if(last && last.name===seg.name && last.end===seg.start){ last.end = seg.end; } else merged.push(seg);
+  }
+  return finalize(procs, merged, perProc, 'RR');
+}
+function finalize(original, timeline, perProc, algo){
+  const byName={}; original.forEach(p=> byName[p.name]=p);
+  const finish={}, rows=[];
+  timeline.forEach(seg=> finish[seg.name]=seg.end);
+  Object.keys(byName).forEach(n=>{
+    const p = byName[n];
+    const start = perProc[n]?.start ?? p.arrival;
+    const response = perProc[n]?.response ?? (start - p.arrival);
+    const complete = finish[n];
+    const turnaround = complete - p.arrival;
+    const waiting = turnaround - p.burst;
+    rows.push({name:n, start, complete, turnaround, waiting, response});
+  });
+  const makespan = Math.max(...timeline.map(x=>x.end));
+  const throughput = original.length / (makespan||1);
+  const avgT = avg(rows.map(r=>r.turnaround));
+  const avgW = avg(rows.map(r=>r.waiting));
+  const avgR = avg(rows.map(r=>r.response));
+  return {timeline, rows, makespan, throughput, avgT, avgW, avgR, algo};
+}
+
+/* ====== GANTT ====== */
+function renderGantt(res){
+  const $track = $("#ganttTrack").empty();
+  if(!res) return;
+  const unit = 40;
+  res.timeline.forEach(seg=>{
+    const w = (seg.end - seg.start) * unit;
+    const block = $(`<div class="gantt-block"></div>`).css({width:w+"px"}).text(`${seg.name} [${seg.start}-${seg.end}]`);
+    $track.append(block);
+  });
+}
+
+/* ====== SUMMARY & ROWS ====== */
+function renderSummary(res){
+  const $s = $("#summary").empty();
+  $s.append(`<li>Makespan: <strong>${res.makespan}</strong></li>`);
+  $s.append(`<li>Avg Turnaround: <strong>${res.avgT.toFixed(2)}</strong></li>`);
+  $s.append(`<li>Avg Waiting: <strong>${res.avgW.toFixed(2)}</strong></li>`);
+  $s.append(`<li>Avg Response: <strong>${res.avgR.toFixed(2)}</strong></li>`);
+  $s.append(`<li>Throughput: <strong>${res.throughput.toFixed(2)}</strong> proses/unit waktu</li>`);
+}
+function renderRows(res){
+  const $tb = $("#resultTable tbody").empty();
+  res.rows.sort((a,b)=> a.name.localeCompare(b.name)).forEach(r=>{
+    $tb.append(`<tr>
+      <td><span class="badge text-bg-dark badge-proc">${r.name}</span></td>
+      <td>${r.start}</td>
+      <td>${r.complete}</td>
+      <td>${r.turnaround}</td>
+      <td>${r.waiting}</td>
+      <td>${r.response}</td>
+    </tr>`);
+  });
+}
+
+/* ====== BUBBLES ====== */
+function layoutStageBubbles(data){
+  const $stage = $("#stage");
+  const $queue = $("#laneQueue");
+  const posQueue = $queue.position();
+  const startY = posQueue.top + 56; // spacing from title
+  let col = 0, row = 0;
+  data.forEach((p,i)=>{
+    let $b = $(`#bubble-${CSS.escape(p.name)}`);
+    if(!$b.length){
+      const color = randColor(p.category || p.name);
+      $b = $(`<div class="bubble" id="bubble-${p.name}" data-state="queue" data-name="${p.name}" title="${p.name}&#10;Arrival: ${p.arrival}, Burst: ${p.burst}, Priority: ${p.priority??'-'}">
+                ${iconFor(p.name)} <span>${p.name}</span>
+              </div>`)
+            .css({background: color});
+      $b.attr("data-bs-toggle","tooltip");
+      $stage.append($b);
+      new bootstrap.Tooltip($b[0]);
+    }
+    const x = posQueue.left + 16 + (col*210);
+    const y = startY + (row*64);
+    $b.css({left: x+"px", top: y+"px"});
+    col++; if(col>=2){ col=0; row++; }
+  });
+}
+function animateSlice(name, durUnitMs, isPreempt){
+  return new Promise(resolve => {
+    const $b = $(`#bubble-${CSS.escape(name)}`);
+    const $cpu = $("#laneCpu");
+    const $done = $("#laneDone");
+    const posCpu = $cpu.position();
+    const cx = posCpu.left + $cpu.width()/2 - $b.width()/2;
+    const cy = posCpu.top + $cpu.height()/2 - $b.height()/2;
+    $b.addClass("run").attr("data-state","cpu").css("z-index", 10);
+    $b.animate({left: cx, top: cy}, 400, () => {
+      setTimeout(()=>{
+        $b.removeClass("run");
+        if(isPreempt){
+          // back to random queue spot
+          const $queue = $("#laneQueue");
+          const posQueue = $queue.position();
+          const x = posQueue.left + 16 + Math.floor(Math.random()*240);
+          const y = posQueue.top + 56 + Math.floor(Math.random()*120);
+          $b.animate({left:x, top:y}, 350, ()=>{
+            $b.attr("data-state","queue").css("z-index",1);
+            resolve();
+          });
+        }else{
+          // move to done
+          const posDone = $done.position();
+          const dx = posDone.left + 16 + Math.floor(Math.random()*($done.width()-120));
+          const dy = posDone.top + 48 + Math.floor(Math.random()*($done.height()-80));
+          $b.addClass("done");
+          $b.animate({left:dx, top:dy}, 400, ()=>{
+            $b.attr("data-state","done").css("z-index",1);
+            resolve();
+          });
+        }
+      }, Math.max(250, Math.min(2000, durUnitMs)));
+    });
+  });
+}
+function narrate(seg, algo){
+  const name = seg.name;
+  let reason = '';
+  if(algo==='FCFS') reason = 'datang lebih dulu (First Come First Served)';
+  else if(algo==='SJF') reason = 'punya burst time paling pendek di antrian (Shortest Job First)';
+  else if(algo==='SRTF') reason = 'memiliki sisa waktu tersingkat saat ini (Shortest Remaining Time First)';
+  else if(algo==='PRIO') reason = 'memiliki prioritas tertinggi (angka kecil = lebih penting)';
+  else if(algo==='RR') reason = 'mendapat jatah waktu (quantum) secara bergilir (Round Robin)';
+  $("#narration").html(`<strong>${name}</strong> dieksekusi karena ${reason}. Durasi slice: <code>[${seg.start}–${seg.end}]</code>`);
+}
+async function runBubbleAnimation(res){
+  layoutStageBubbles(processes);
+  const unitMs = parseInt($("#speed").val(),10) || 1000;
+  for(let i=0;i<res.timeline.length;i++){
+    const seg = res.timeline[i];
+    const isPreempt = i < res.timeline.length-1 && res.timeline.slice(i+1).some(s=> s.name===seg.name);
+    narrate(seg, res.algo);
+    await animateSlice(seg.name, (seg.end - seg.start)*unitMs, isPreempt);
+  }
+  $("#narration").html(`Selesai. Total waktu (makespan): <strong>${res.makespan}</strong> unit. Throughput: <strong>${res.throughput.toFixed(2)}</strong> proses/unit.`);
+}
+
+/* ====== RUN ====== */
+function renderGantt(res){
+  const $track = $("#ganttTrack").empty();
+  if(!res) return;
+  const unit = 40;
+  res.timeline.forEach(seg=>{
+    const w = (seg.end - seg.start) * unit;
+    const block = $(`<div class="gantt-block"></div>`).css({width:w+"px"}).text(`${seg.name} [${seg.start}-${seg.end}]`);
+    $track.append(block);
+  });
+}
+$("#runSim").on("click", async (e)=>{
+  e.preventDefault();
+  if(processes.length===0){ alert("Tambahkan minimal 1 proses."); return; }
+  const algo = $("#algo").val();
+  const q = Math.max(1, parseInt($("#quantum").val(),10)||2);
+  let res=null;
+  if(algo==="FCFS") res = schedule_FCFS(processes);
+  else if(algo==="SJF") res = schedule_SJF(processes);
+  else if(algo==="SRTF") res = schedule_SRTF(processes);
+  else if(algo==="PRIO") res = schedule_PRIO(processes);
+  else if(algo==="RR") res = schedule_RR(processes, q);
+  renderGantt(res);
+  renderSummary(res);
+  renderRows(res);
+  // reset bubbles & narr
+  $(".bubble").remove(); $("#narration").text("Menyiapkan animasi…");
+  layoutStageBubbles(processes);
+  await runBubbleAnimation(res);
+});
+
+/* ====== GAME ====== */
+let gameData=[], gameAnswer=[], gameUser=[];
+function randomDataset(n){
+  const data=[];
+  for(let i=0;i<n;i++){
+    data.push({
+      name: "Proc "+String.fromCharCode(65+i),
+      arrival: Math.floor(Math.random()*6),
+      burst: 1 + Math.floor(Math.random()*7),
+      priority: 1 + Math.floor(Math.random()*4)
+    });
+  }
+  return data;
+}
+function renderGameTable(){
+  const $tb = $("#gameTable tbody").empty();
+  gameData.forEach(p=>{
+    $tb.append(`<tr><td><span class="badge text-bg-dark badge-proc">${p.name}</span></td><td>${p.arrival}</td><td>${p.burst}</td><td>${p.priority}</td></tr>`);
+  });
+}
+function renderGameChoices(){
+  const $c = $("#gameChoices").empty();
+  gameData.forEach(p=>{
+    const btn = $(`<button class="btn btn-outline-primary btn-sm">${p.name}</button>`);
+    btn.on("click", ()=>{ gameUser.push(p.name); renderSelected(); });
+    $c.append(btn);
+  });
+}
+function renderSelected(){
+  const $s = $("#gameSelected").empty();
+  gameUser.forEach((n,i)=> $s.append(`<span class="badge bg-primary">${i+1}. ${n}</span>`));
+}
+$("#gameReset").on("click", ()=>{ gameUser=[]; renderSelected(); $("#gameResult").addClass("d-none"); });
+$("#startGame").on("click", ()=>{
+  const n = Math.min(10, Math.max(3, parseInt($("#gameN").val(),10)||5));
+  const algo = $("#gameAlgo").val();
+  const q = Math.max(1, parseInt($("#gameQ").val(),10)||2);
+  gameData = randomDataset(n);
+  renderGameTable(); renderGameChoices(); gameUser=[]; renderSelected();
+  // compute answer
+  let res=null;
+  if(algo==="FCFS") res = schedule_FCFS(gameData);
+  else if(algo==="SJF") res = schedule_SJF(gameData);
+  else if(algo==="SRTF") res = schedule_SRTF(gameData);
+  else if(algo==="PRIO") res = schedule_PRIO(gameData);
+  else if(algo==="RR") res = schedule_RR(gameData, q);
+  gameAnswer = res.timeline.map(s=>s.name);
+  $("#gameResult").removeClass("d-none alert-success alert-danger").addClass("alert alert-info")
+    .text("Tebak urutan eksekusi. Panjang jawaban: " + gameAnswer.length);
+});
+$("#gameCheck").on("click", ()=>{
+  if(gameUser.length===0){ alert("Pilih minimal satu langkah urutan."); return; }
+  const L = Math.min(gameUser.length, gameAnswer.length);
+  let score=0;
+  for(let i=0;i<L;i++){ if(gameUser[i]===gameAnswer[i]) score++; }
+  const $r = $("#gameResult").removeClass("d-none alert-info alert-success alert-danger");
+  if(score===L){
+    $r.addClass("alert alert-success").html(`<strong>Tepat!</strong> Skor ${score}/${L}. Urutan yang dipilih benar untuk ${L} langkah pertama.`);
+  }else{
+    $r.addClass("alert alert-danger").html(`<strong>Belum tepat.</strong> Skor ${score}/${L}. Kunci (prefix ${L}): <code>${gameAnswer.slice(0,L).join(" → ")}</code>`);
+  }
+});
+
+/* ====== INIT ====== */
+// default: mode apps & speed 1s
+mode='apps'; $("#modeLabel").text("Aplikasi Nyata"); $("#speed").val("1000");
+loadAppsSample();
+</script>
+
+</body>
+</html>
