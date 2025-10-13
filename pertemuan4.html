@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pertemuan 4 - Lanjutan Penjadwalan Proses</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { background-color: #f8f9fa; }
+    .card:hover { transform: scale(1.02); transition: 0.2s; }
+    code { background: #f1f1f1; padding: 2px 5px; border-radius: 3px; }
+  </style>
+</head>
+
+<body>
+  <!-- Header -->
+  <header class="bg-primary text-dark text-center py-4 shadow-sm mb-4">
+    <div class="container">
+      <h2 class="fw-bold mb-0">💻 Pertemuan 4 — Lanjutan: Penjadwalan Proses</h2>
+      <p class="mb-0 small">Mata Kuliah Sistem Operasi — Program Studi Sistem Informasi</p>
+    </div>
+  </header>
+
+  <!-- Konten Utama -->
+  <main class="container mb-5">
+    <div class="mb-4">
+      <h4 class="fw-bold text-secondary">📘 Fokus Materi</h4>
+      <ul>
+        <li>Memahami <strong>Priority Scheduling</strong> dan perbedaannya dengan algoritma sebelumnya.</li>
+        <li>Mempelajari konsep <strong>Multilevel Queue (MLQ)</strong> dan <strong>Multilevel Feedback Queue (MLFQ)</strong>.</li>
+        <li>Melihat simulasi interaktif perbandingan algoritma penjadwalan.</li>
+      </ul>
+    </div>
+
+    <div class="mb-3">
+      <button class="btn btn-sm btn-warning me-2" data-bs-toggle="modal" data-bs-target="#priorityModal">Priority Scheduling</button>
+      <button class="btn btn-sm btn-primary me-2" data-bs-toggle="modal" data-bs-target="#mlqModal">Multilevel Queue</button>
+      <button class="btn btn-sm btn-success me-2" data-bs-toggle="modal" data-bs-target="#mlfqModal">Multilevel Feedback Queue</button>
+    </div>
+
+    <hr>
+
+    <!-- Simulasi Interaktif -->
+    <div class="card shadow-sm p-4 mt-4">
+      <h5 class="text-success mb-3">🎮 Simulasi Priority & Multilevel Queue Scheduling</h5>
+      <p class="small text-muted">Masukkan proses, burst time, dan prioritas untuk melihat urutan eksekusi CPU.</p>
+
+      <div id="inputArea">
+        <div class="row g-2 align-items-end mb-3">
+          <div class="col-md-3">
+            <label class="form-label">Nama Proses</label>
+            <input type="text" id="procName" class="form-control form-control-sm" placeholder="P1">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Burst Time</label>
+            <input type="number" id="burstTime" class="form-control form-control-sm" placeholder="10">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Prioritas (angka kecil = tinggi)</label>
+            <input type="number" id="priority" class="form-control form-control-sm" placeholder="1">
+          </div>
+          <div class="col-md-2">
+            <button class="btn btn-primary btn-sm w-100" onclick="addProcess()">Tambah</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <select id="algoSelect" class="form-select form-select-sm w-auto d-inline-block">
+          <option value="Priority">Priority Scheduling</option>
+          <option value="MLQ">Multilevel Queue (Fixed)</option>
+        </select>
+        <button class="btn btn-success btn-sm ms-2" onclick="runScheduling()">Jalankan</button>
+        <button class="btn btn-outline-danger btn-sm ms-2" onclick="resetAll()">Reset</button>
+      </div>
+
+      <div id="processList" class="small bg-light p-2 rounded border mb-3"></div>
+      <div id="resultArea" class="border rounded bg-white p-3 mb-3" style="min-height:80px;">
+        <p class="text-muted small">Belum ada simulasi dijalankan.</p>
+      </div>
+
+      <canvas id="chart" height="120"></canvas>
+    </div>
+  </main>
+
+  <!-- ================= MODALS ================= -->
+
+  <!-- PRIORITY -->
+  <div class="modal fade" id="priorityModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-warning text-dark">
+          <h5 class="modal-title">Priority Scheduling</h5>
+          <button class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p><strong>Priority Scheduling</strong> adalah algoritma di mana setiap proses diberi nilai prioritas. Proses dengan prioritas tertinggi (angka terkecil) dieksekusi lebih dahulu.</p>
+          <ul>
+            <li>Bisa bersifat <em>Preemptive</em> atau <em>Non-Preemptive</em>.</li>
+            <li>Resiko: <strong>Starvation</strong> (proses prioritas rendah tidak pernah jalan).</li>
+          </ul>
+          <pre class="bg-light p-2 border rounded small">
+Contoh:
+P1 (burst=10, priority=2)
+P2 (burst=5,  priority=1)
+Urutan eksekusi: P2 → P1
+          </pre>
+        </div>
+        <div class="modal-footer"><button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Tutup</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MLQ -->
+  <div class="modal fade" id="mlqModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title">Multilevel Queue Scheduling (MLQ)</h5>
+          <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p><strong>Multilevel Queue Scheduling (MLQ)</strong> memisahkan proses ke dalam beberapa antrian berdasarkan prioritas atau tipe proses.</p>
+          <ul>
+            <li>Setiap antrian bisa punya algoritma sendiri (misal RR, FCFS).</li>
+            <li>Proses tidak berpindah antar antrian (fixed).</li>
+          </ul>
+          <pre class="bg-light p-2 border rounded small">
+Contoh:
+- Queue 1: Interactive (RR)
+- Queue 2: Batch (FCFS)
+          </pre>
+        </div>
+        <div class="modal-footer"><button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Tutup</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MLFQ -->
+  <div class="modal fade" id="mlfqModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-success text-white">
+          <h5 class="modal-title">Multilevel Feedback Queue (MLFQ)</h5>
+          <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p><strong>Multilevel Feedback Queue (MLFQ)</strong> memungkinkan proses berpindah antar antrian berdasarkan perilaku dan waktu CPU.</p>
+          <ul>
+            <li>Jika proses sering menggunakan CPU lama → turun ke antrian prioritas lebih rendah.</li>
+            <li>Jika proses sering menunggu I/O → naik ke prioritas lebih tinggi.</li>
+            <li>Digunakan oleh sistem operasi modern (Windows, Linux).</li>
+          </ul>
+          <div class="alert alert-info small">MLFQ menyeimbangkan efisiensi CPU dan responsivitas interaktif.</div>
+        </div>
+        <div class="modal-footer"><button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Tutup</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= SCRIPT ================= -->
+  <script>
+  let processes = [];
+
+  function addProcess() {
+    const name = document.getElementById('procName').value.trim();
+    const burst = parseInt(document.getElementById('burstTime').value);
+    const prio = parseInt(document.getElementById('priority').value);
+
+    if (!name || isNaN(burst) || isNaN(prio)) {
+      alert("Lengkapi semua data proses!");
+      return;
+    }
+    processes.push({ name, burst, prio });
+    renderProcessList();
+    document.getElementById('procName').value = '';
+    document.getElementById('burstTime').value = '';
+    document.getElementById('priority').value = '';
+  }
+
+  function renderProcessList() {
+    const div = document.getElementById('processList');
+    if (processes.length === 0) {
+      div.innerHTML = '<span class="text-muted">Belum ada proses.</span>';
+      return;
+    }
+    div.innerHTML = processes.map(p => 
+      `<code>${p.name}</code> (Burst=${p.burst}, Priority=${p.prio})`
+    ).join('<br>');
+  }
+
+  function resetAll() {
+    processes = [];
+    renderProcessList();
+    document.getElementById('resultArea').innerHTML = '<p class="text-muted small">Belum ada simulasi dijalankan.</p>';
+    if (window.cpuChart) window.cpuChart.destroy();
+  }
+
+  function runScheduling() {
+    const algo = document.getElementById('algoSelect').value;
+    if (processes.length === 0) return alert("Tambahkan proses terlebih dahulu!");
+
+    let order = [];
+    if (algo === 'Priority') {
+      order = [...processes].sort((a,b) => a.prio - b.prio);
+    } else if (algo === 'MLQ') {
+      const high = processes.filter(p => p.prio <= 2);
+      const low = processes.filter(p => p.prio > 2);
+      order = [...high, ...low];
+    }
+
+    const result = document.getElementById('resultArea');
+    const total = order.reduce((a,p) => a + p.burst, 0);
+    result.innerHTML = `
+      <strong>Algoritma:</strong> ${algo}<br>
+      <strong>Urutan Eksekusi:</strong> ${order.map(p => p.name).join(' → ')}<br>
+      <strong>Total Burst Time:</strong> ${total} unit
+    `;
+
+    // Chart visualisasi
+    const ctx = document.getElementById('chart').getContext('2d');
+    if (window.cpuChart) window.cpuChart.destroy();
+    window.cpuChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: order.map(p => p.name),
+        datasets: [{ label: 'Burst Time', data: order.map(p => p.burst), borderWidth: 1 }]
+      },
+      options: {
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true, title: { display: true, text: 'Burst Time' } } }
+      }
+    });
+  }
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
