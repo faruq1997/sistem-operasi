@@ -1,6 +1,6 @@
 # Sistem Operasi — Materi Kuliah
 
-Selamat datang di repositori materi pembelajaran **Sistem Operasi** untuk Program Studi Sistem Informasi.  
+Selamat datang di repositori materi pembelajaran **Sistem Operasi** (https://faruq1997.github.io/sistem-operasi/). untuk Program Studi Sistem Informasi.  
 Situs ini menyediakan modul interaktif dan simulasi untuk mendukung proses belajar mahasiswa terkait konsep Sistem Operasi dari pertemuan 1 hingga 11.
 
 ---
