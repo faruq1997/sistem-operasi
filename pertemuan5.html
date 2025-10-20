@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pertemuan 5 - Konkurensi dan Keamanan Sistem</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background-color: #f8f9fa; }
+    .sim-container {
+      position: relative;
+      height: 300px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      background: #fff;
+      overflow: hidden;
+    }
+    .process {
+      position: absolute;
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      transition: all 1s ease-in-out;
+    }
+    .virus-node {
+      width: 50px; height: 50px;
+      border-radius: 50%;
+      position: absolute;
+      display: flex; align-items: center; justify-content: center;
+      color: white; font-weight: bold;
+      transition: all 0.6s ease-in-out;
+    }
+    .critical-section {
+      position: absolute;
+      top: 110px; left: 50%; transform: translateX(-50%);
+      width: 160px; height: 80px;
+      border: 3px dashed #ffc107;
+      border-radius: 8px;
+      text-align: center;
+      line-height: 80px;
+      font-weight: bold;
+      color: #856404;
+      background-color: #fffbea;
+    }
+    .console-box {
+      background: #000;
+      color: #00ff88;
+      font-family: monospace;
+      height: 120px;
+      overflow-y: auto;
+      font-size: 13px;
+      border-radius: 5px;
+      padding: 8px;
+    }
+    .console-title {
+      font-size: 12px;
+      font-weight: bold;
+      color: #bbb;
+      margin-bottom: 3px;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- HEADER -->
+  <header class="bg-dark text-white text-center py-4 shadow-sm mb-4">
+    <h2 class="fw-bold mb-0">🧩 Pertemuan 5 — Konkurensi dan Keamanan Sistem</h2>
+    <p class="mb-0 small">Sistem Operasi — Program Studi Sistem Informasi</p>
+  </header>
+
+  <main class="container mb-5">
+
+<!-- BUTTONS -->
+    <div class="mb-3">
+      <button class="btn btn-sm btn-primary me-2" data-bs-toggle="modal" data-bs-target="#konkurensiModal">Konsep Konkurensi</button>
+      <button class="btn btn-sm btn-warning me-2" data-bs-toggle="modal" data-bs-target="#masalahModal">Masalah Konkurensi</button>
+      <button class="btn btn-sm btn-danger me-2" data-bs-toggle="modal" data-bs-target="#keamananModal">Keamanan Sistem</button>
+      <button class="btn btn-sm btn-success me-2" data-bs-toggle="modal" data-bs-target="#virusModal">Virus & AntiVirus</button>
+    </div>
+
+    <!-- ====== SIMULASI KONKURENSI ====== -->
+    <section class="mb-5">
+      <h4 class="fw-bold text-secondary mb-3">🎮 Simulasi 1 — Konkurensi dan Critical Section</h4>
+      <p class="small text-muted">
+        Klik tombol untuk menjalankan dua proses yang ingin mengakses <strong>critical section</strong>. 
+        Log di bawah menunjukkan urutan eksekusi dan konflik antar proses.
+      </p>
+
+      <div class="sim-container mb-3" id="simKonkurensi">
+        <div class="critical-section" id="critical">Critical Section</div>
+        <div class="process bg-primary" id="p1" style="top:40px; left:50px;">P1</div>
+        <div class="process bg-danger" id="p2" style="bottom:40px; right:50px;">P2</div>
+      </div>
+
+      <div class="d-flex gap-2">
+        <button class="btn btn-primary btn-sm" onclick="startProcess('p1')">Jalankan P1</button>
+        <button class="btn btn-danger btn-sm" onclick="startProcess('p2')">Jalankan P2</button>
+        <button class="btn btn-warning btn-sm" onclick="triggerDeadlock()">Simulasi Deadlock</button>
+        <button class="btn btn-outline-secondary btn-sm" onclick="resetProcesses()">Reset</button>
+      </div>
+
+      <div id="status" class="alert alert-light border mt-3 small">Status: menunggu proses...</div>
+
+      <div class="mt-3">
+        <div class="console-title">🧠 Log Proses (Konkurensi)</div>
+        <div id="logKonkurensi" class="console-box"></div>
+      </div>
+    </section>
+
+    <hr class="my-5">
+
+    <!-- ====== SIMULASI VIRUS ====== -->
+    <section>
+      <h4 class="fw-bold text-secondary mb-3">🦠 Simulasi 2 — Penyebaran Virus dan Antivirus</h4>
+      <p class="small text-muted">
+        Simulasi ini memperlihatkan bagaimana virus menyebar ke node lain, dan bagaimana antivirus menanganinya. 
+        Semua aktivitas dicatat di konsol.
+      </p>
+
+      <div class="sim-container" id="simVirus"></div>
+
+      <div class="mt-3 d-flex gap-2">
+        <button class="btn btn-danger btn-sm" onclick="spreadVirus()">Sebarkan Virus</button>
+        <button class="btn btn-success btn-sm" onclick="runAntivirus()">Jalankan Antivirus</button>
+        <button class="btn btn-outline-secondary btn-sm" onclick="resetVirus()">Reset</button>
+      </div>
+
+      <div class="mt-3">
+        <div class="console-title">💾 Log Sistem (Virus & Antivirus)</div>
+        <div id="logVirus" class="console-box"></div>
+      </div>
+    </section>
+
+  </main>
+
+<!-- ================= MODALS ================= -->
+
+  <!-- Konkurensi -->
+  <div class="modal fade" id="konkurensiModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title">Konsep dan Prinsip Konkurensi</h5>
+          <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p><strong>Konkurensi</strong> adalah kondisi di mana dua atau lebih proses berjalan secara bersamaan dalam satu sistem.</p>
+          <ul>
+            <li>Tujuan: meningkatkan efisiensi dan utilisasi CPU.</li>
+            <li>Memerlukan mekanisme <strong>sinkronisasi</strong> untuk menghindari konflik data.</li>
+          </ul>
+          <div class="critical mt-2">
+            <strong>Prinsip-prinsip utama:</strong>
+            <ul>
+              <li>Alokasi sumber daya secara adil</li>
+              <li>Pemakaian bersama (shared resource)</li>
+              <li>Komunikasi antar proses</li>
+              <li>Sinkronisasi aktivitas</li>
+            </ul>
+          </div>
+        </div>
+        <div class="modal-footer"><button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Tutup</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Masalah Konkurensi -->
+  <div class="modal fade" id="masalahModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-warning">
+          <h5 class="modal-title">Masalah dalam Konkurensi</h5>
+          <button class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <h6>1️⃣ Mutual Exclusion</h6>
+          <p>Menjamin hanya satu proses dapat mengakses <em>critical section</em> pada waktu tertentu.</p>
+          <h6>2️⃣ Deadlock</h6>
+          <p>Terjadi ketika dua proses saling menunggu sumber daya yang dikunci oleh yang lain, menyebabkan sistem berhenti total.</p>
+          <h6>3️⃣ Starvation</h6>
+          <p>Proses tertentu tidak pernah mendapatkan giliran karena terus didahului proses lain yang lebih prioritas.</p>
+
+          <div class="alert alert-info small">
+            <strong>Contoh:</strong> Proses P1 & P2 menunggu printer yang sama → jika salah satunya tidak pernah dilepas, sistem mengalami deadlock.
+          </div>
+        </div>
+        <div class="modal-footer"><button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Tutup</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Keamanan -->
+  <div class="modal fade" id="keamananModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-danger text-white">
+          <h5 class="modal-title">Keamanan Sistem Komputer</h5>
+          <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p>Keamanan sistem menjamin sumber daya komputer hanya dapat digunakan oleh pihak yang berwenang.</p>
+          <div class="secure mb-3">
+            <strong>Tiga aspek utama keamanan:</strong>
+            <ul>
+              <li><strong>Kerahasiaan (Secrecy):</strong> hanya pihak berwenang yang boleh mengakses data.</li>
+              <li><strong>Integritas (Integrity):</strong> data tidak boleh diubah tanpa izin.</li>
+              <li><strong>Ketersediaan (Availability):</strong> sistem harus tersedia saat dibutuhkan.</li>
+            </ul>
+          </div>
+          <h6>Jenis Ancaman:</h6>
+          <ul>
+            <li><strong>Interupsi:</strong> sumber daya dihancurkan (misal: kabel terputus).</li>
+            <li><strong>Intersepsi:</strong> penyadapan data.</li>
+            <li><strong>Modifikasi:</strong> perusakan atau perubahan data.</li>
+            <li><strong>Fabrikasi:</strong> pembuatan data palsu.</li>
+          </ul>
+        </div>
+        <div class="modal-footer"><button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Tutup</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Virus -->
+  <div class="modal fade" id="virusModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-success text-white">
+          <h5 class="modal-title">Program Jahat, Virus, dan Antivirus</h5>
+          <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p>Program jahat (malicious program) terbagi menjadi dua kategori:</p>
+          <ul>
+            <li><strong>Bergantung pada host:</strong> Trapdoor, Logic Bomb, Trojan Horse, Virus.</li>
+            <li><strong>Mandiri:</strong> Worm, Bacteria.</li>
+          </ul>
+          <h6>🦠 Jenis Virus:</h6>
+          <ul>
+            <li><strong>Parasitic:</strong> menempel di file .exe.</li>
+            <li><strong>Memory-resident:</strong> menetap di memori utama.</li>
+            <li><strong>Boot sector:</strong> menyerang boot record.</li>
+            <li><strong>Stealth:</strong> menyembunyikan diri dari deteksi.</li>
+            <li><strong>Polymorphic:</strong> bermutasi setiap infeksi.</li>
+          </ul>
+          <h6>🧰 Generasi Antivirus:</h6>
+          <ol>
+            <li>Scanner sederhana</li>
+            <li>Heuristic scanner</li>
+            <li>Activity trap</li>
+            <li>Full-feature protection</li>
+          </ol>
+        </div>
+        <div class="modal-footer"><button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Tutup</button></div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="text-center text-muted small py-4 border-top">
+    © 2025 Sistem Operasi — Materi Pertemuan 5. Dikembangkan oleh <strong>Yanti</strong>.
+  </footer>
+
+  <script>
+  // === KONKURENSI ===
+  let inCritical = null;
+  const logBox1 = document.getElementById("logKonkurensi");
+
+  function logKonkurensi(msg) {
+    const time = new Date().toLocaleTimeString();
+    logBox1.innerHTML += `[${time}] ${msg}<br>`;
+    logBox1.scrollTop = logBox1.scrollHeight;
+  }
+
+  function startProcess(id) {
+    const proc = document.getElementById(id);
+    const status = document.getElementById("status");
+
+    if (inCritical && inCritical !== id) {
+      const msg = `⚠️ ${id.toUpperCase()} DITOLAK — ${inCritical.toUpperCase()} sedang di critical section.`;
+      status.innerHTML = msg;
+      logKonkurensi(msg);
+      return;
+    }
+
+    inCritical = id;
+    status.innerHTML = `${id.toUpperCase()} masuk critical section...`;
+    logKonkurensi(`${id.toUpperCase()} masuk ke critical section.`);
+    proc.style.left = "calc(50% - 35px)";
+    proc.style.top = "110px";
+
+    setTimeout(() => {
+      logKonkurensi(`${id.toUpperCase()} keluar dari critical section.`);
+      status.innerHTML = `${id.toUpperCase()} keluar dari critical section.`;
+      proc.style.left = id === 'p1' ? "50px" : "calc(100% - 120px)";
+      proc.style.top = id === 'p1' ? "40px" : "180px";
+      inCritical = null;
+    }, 3000);
+  }
+
+  function triggerDeadlock() {
+    const msg = "💥 DEADLOCK terjadi: kedua proses saling menunggu!";
+    document.getElementById("status").innerHTML = msg;
+    logKonkurensi(msg);
+    const p1 = document.getElementById("p1");
+    const p2 = document.getElementById("p2");
+    p1.style.left = "calc(50% - 120px)";
+    p2.style.left = "calc(50% - 80px)";
+  }
+
+  function resetProcesses() {
+    document.getElementById("p1").style.left = "50px";
+    document.getElementById("p1").style.top = "40px";
+    document.getElementById("p2").style.right = "50px";
+    document.getElementById("p2").style.bottom = "40px";
+    document.getElementById("status").innerHTML = "Status: menunggu proses...";
+    inCritical = null;
+    logKonkurensi("🔄 Reset sistem konkurensi.");
+  }
+
+  // === VIRUS ===
+  const nodes = [];
+  let virusRunning = false;
+  const sim = document.getElementById("simVirus");
+  const logBox2 = document.getElementById("logVirus");
+
+  function logVirus(msg) {
+    const time = new Date().toLocaleTimeString();
+    logBox2.innerHTML += `[${time}] ${msg}<br>`;
+    logBox2.scrollTop = logBox2.scrollHeight;
+  }
+
+  function initVirusNodes() {
+    sim.innerHTML = "";
+    nodes.length = 0;
+    for (let i = 0; i < 8; i++) {
+      const node = document.createElement("div");
+      node.className = "virus-node";
+      node.style.left = `${Math.random() * 80 + 10}%`;
+      node.style.top = `${Math.random() * 80 + 10}%`;
+      node.style.background = "#0d6efd";
+      node.textContent = "N" + (i + 1);
+      sim.appendChild(node);
+      nodes.push(node);
+    }
+    logVirus("💻 Sistem diinisialisasi, semua node aman.");
+  }
+
+  function spreadVirus() {
+    if (virusRunning) return;
+    virusRunning = true;
+    logVirus("🚨 Virus mulai menyebar!");
+    const infected = [Math.floor(Math.random() * nodes.length)];
+    nodes[infected[0]].style.background = "#dc3545";
+    nodes[infected[0]].textContent += " 🦠";
+    logVirus(`Node ${nodes[infected[0]].textContent} terinfeksi.`);
+
+    let spreadCount = 0;
+    const spreadInterval = setInterval(() => {
+      if (spreadCount > 6) {
+        clearInterval(spreadInterval);
+        virusRunning = false;
+        logVirus("⚠️ Penyebaran berhenti (kapasitas maksimum).");
+        return;
+      }
+      const healthyNodes = nodes.filter(n => !n.textContent.includes("🦠") && !n.textContent.includes("✅"));
+      if (healthyNodes.length === 0) return;
+      const target = healthyNodes[Math.floor(Math.random() * healthyNodes.length)];
+      target.style.background = "#dc3545";
+      target.textContent += " 🦠";
+      logVirus(`Node ${target.textContent} terinfeksi.`);
+      spreadCount++;
+    }, 700);
+  }
+
+  function runAntivirus() {
+    logVirus("🧩 Antivirus dijalankan...");
+    nodes.forEach((node, i) => {
+      if (node.textContent.includes("🦠")) {
+        setTimeout(() => {
+          node.style.background = "#198754";
+          node.textContent = "N" + (i + 1) + " ✅";
+          logVirus(`Node N${i + 1} berhasil dipulihkan.`);
+        }, i * 400);
+      }
+    });
+  }
+
+  function resetVirus() {
+    virusRunning = false;
+    initVirusNodes();
+    logVirus("🔄 Sistem antivirus direset.");
+  }
+
+  // Initialize
+  window.onload = initVirusNodes;
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
