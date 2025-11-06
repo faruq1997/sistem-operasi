@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pertemuan 7 — Kuis Sistem Operasi (1 Soal per Tampilan)</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<style>
+  body { scroll-behavior:smooth; }
+  .choice-item input{ display:none; }
+  .choice-item label{
+    display:block; width:100%; padding:.9rem 1rem; margin-bottom:.6rem;
+    border:1px solid var(--bs-border-color); border-radius:.6rem; cursor:pointer;
+    transition: box-shadow .15s ease, border-color .15s ease, background .15s ease;
+  }
+  .choice-item input:checked + label{ border-width:2px; box-shadow:inset 0 0 0 2px var(--bs-primary); }
+  .choice-correct{ border-color:var(--bs-success)!important; background:rgba(var(--bs-success-rgb),.06); }
+  .choice-wrong{ border-color:var(--bs-danger)!important; background:rgba(var(--bs-danger-rgb),.06); }
+  .badge-num{ min-width:2.2rem; }
+  .sticky-bottom-bar{ position:sticky; bottom:0; z-index:1020; backdrop-filter:saturate(180%) blur(8px); }
+  .explain-box{ display:none; }
+  .topic-title{ margin-bottom:.25rem; }
+  .subtle{ color:var(--bs-secondary-color); }
+  #globalAlerts{ position:sticky; top:0; z-index:1030; }
+</style>
+</head>
+<body data-bs-theme="light">
+
+<nav class="navbar bg-body-tertiary border-bottom">
+  <div class="container-fluid">
+    <div class="d-flex align-items-center gap-2">
+      <span class="navbar-brand mb-0 h1"><i class="bi bi-cpu"></i> Pertemuan 7 — Kuis Sistem Operasi</span>
+      <span class="badge text-bg-primary">1 soal per tampilan</span>
+    </div>
+    <div class="d-flex align-items-center gap-3">
+      <div class="form-check form-switch m-0">
+        <input class="form-check-input" type="checkbox" id="themeSwitch">
+        <label class="form-check-label" for="themeSwitch" title="Light/Dark"><i class="bi bi-moon-stars"></i></label>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- GLOBAL ALERTS -->
+<div id="globalAlerts" class="container mt-2"></div>
+
+<main class="container my-3" id="app">
+  <!-- Header + progress -->
+  <div class="row g-3 align-items-center">
+    <div class="col-12 col-lg-7">
+      <div class="d-flex align-items-center gap-3">
+        <span class="badge text-bg-secondary"><i class="bi bi-list-ol"></i> <span id="qPos">1</span>/<span id="qTotal">30</span></span>
+        <span class="badge text-bg-info"><i class="bi bi-journal-text"></i> Soal <span id="qNumber">1</span></span>
+        <span class="badge text-bg-success" id="scoreBadge">Skor: —</span>
+      </div>
+    </div>
+    <div class="col-12 col-lg-5">
+      <div class="progress" role="progressbar" aria-label="Progress jawaban">
+        <div class="progress-bar" id="progressBar" style="width:0%">0%</div>
+      </div>
+      <div class="form-text"><span id="answeredCount">0</span>/<span id="totalCount">30</span> terjawab</div>
+    </div>
+  </div>
+
+  <!-- Kartu soal -->
+  <div class="card mt-3" id="qCard">
+    <div class="card-body">
+      <h4 class="topic-title">Pertemuan 7 – Sistem Operasi</h4>
+      <div class="subtle small">Sumber: Pertemuan 7 – Kuis Sistem Operasi:contentReference[oaicite:19]{index=19}.</div>
+      <hr class="mt-2 mb-3">
+      <div class="d-flex align-items-start justify-content-between">
+        <div class="me-2">
+          <span class="badge text-bg-primary badge-num" id="badgeNumber">#1</span>
+          <span class="ms-2 fw-semibold">Soal <span id="hdrNumber">1</span></span>
+        </div>
+        <button class="btn btn-sm btn-link text-decoration-none p-0" id="btnCopy"><i class="bi bi-clipboard"></i> salin</button>
+      </div>
+
+      <p class="mt-2" id="qText">…</p>
+      <div id="choices"></div>
+
+      <div class="alert alert-secondary alert-dismissible fade show mt-3 d-none" id="resultBox" role="alert">
+        <span id="resultMsg"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+
+      <div class="explain-box alert alert-secondary mt-2" id="explainBox">
+        <div class="d-flex align-items-start gap-2">
+          <i class="bi bi-lightbulb"></i>
+          <div id="explainText">Pembahasan…</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom actions -->
+  <div class="sticky-bottom-bar bg-body border-top mt-3 py-2">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+      <div class="d-flex align-items-center gap-2">
+        <button class="btn btn-outline-secondary" id="btnPrev"><i class="bi bi-arrow-left"></i> Prev</button>
+        <button class="btn btn-outline-secondary" id="btnNext">Next <i class="bi bi-arrow-right"></i></button>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="toggleInstant">
+          <label class="form-check-label" for="toggleInstant">Periksa Otomatis</label>
+        </div>
+        <button class="btn btn-primary" id="btnCheck"><i class="bi bi-check2-circle"></i> Periksa</button>
+        <button class="btn btn-outline-info" id="btnExplain"><i class="bi bi-chat-square-text"></i> Lihat Pembahasan</button>
+        <button class="btn btn-outline-danger" id="btnReset"><i class="bi bi-eraser"></i> Reset</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Modal Konfirmasi Reset -->
+<div class="modal fade" id="confirmResetModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h6 class="modal-title"><i class="bi bi-exclamation-triangle"></i> Konfirmasi Reset</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+      </div>
+      <div class="modal-body">
+        Hapus seluruh jawaban tersimpan?
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+        <button class="btn btn-danger" id="confirmResetBtn">Ya, Hapus</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ======= DATA (dari 328-P07.pdf) ======= */
+/* Sumber soal: Pertemuan 7 – Kuis Sistem Operasi:contentReference[oaicite:20]{index=20} */
+const QUESTIONS = [
+  {n:1,  t:"Sistem Operasi sebagai pengelola sumber daya (Resources Manager), merupakan penjelasan dari:", o:["Definisi Sistem Operasi","Fungsi Sistem Operasi","Tujuan Sistem Operasi","Tugas Utama Sistem Operasi","Layanan Sistem Operasi"]},
+  {n:2,  t:"Sumber daya yang ada pada sistem komputer terdiri dari:", o:["Dua","Tiga","Empat","Lima","Enam"]},
+  {n:3,  t:"Contoh sumber daya fisik adalah:", o:["PCB","Tabel segmen","Berkas (file)","Semaphore","Perangkat masukkan"]},
+  {n:4,  t:"Sistem operasi menyediakan beragam fasilitas/layanan untuk membantu pemrogram menulis program, pengertian dari:", o:["Eksekusi program","Pengaksesan perangkat masukan/keluaran","Pembuatan Program","Pengaksesan terkendali terhadap berkas","Pengaksesan sistem"]},
+  {n:5,  t:"Sekumpulan informasi yang saling berkaitan dan didefinisikan oleh pembuatnya, disebut:", o:["Proses","File","System Call","System program","Resource"]},
+  {n:6,  t:"Energi goncangan akan diredam sehingga head tidak terangkat saat terjadi goncangan, penjelasan dari:", o:["SMART","SSD","MR","Shock Protection System (SPS)","PRML"]},
+  {n:7,  t:"Teknologi harddisk yang tidak menggunakan piringan magnetik melainkan menggunakan dynamic RAM adalah:", o:["MR","Plug and Play ATA","SPS","SSD","EPA"]},
+  {n:8,  t:"Akses disk hanya naik menuju track terbesar, saat turun ke track terkecil, lalu naik lagi mengakses sisa track. Algoritma ini dikenal:", o:["Pick Up","Scan","Look","C-look","C-Scan"]},
+  {n:9,  t:"Akses dimulai berurutan sesuai urutan tiba (kedudukan antrian). Algoritma ini dikenal:", o:["PTPD","C-look","Scan","C-Scan","Look"]},
+  {n:10, t:"Disk 70 lintas (0–69). Kepala mulai dari 50. Antrian: 5,10,15,23,30,36,40,43,45,53,55. Metode Scan: total lintas adalah:", o:["216","171","55","98","88"]},
+  {n:11, t:"Throughput: rasio waktu sibuk pemroses terhadap total waktu operasi sistem komputer merupakan:", o:["Adil","Efisiensi","Waktu tanggap","Turnaround Time","Throughput"]},
+  {n:12, t:"Penjadwalan yang dijalankan setiap terjadi pengalihan proses untuk memilih proses berikutnya:", o:["Penjadwalan jangka pendek","Penjadwalan jangka menengah","Penjadwalan jangka panjang","Penjadwalan jangka awal","Penjadwalan jangka akhir"]},
+  {n:13, t:"Istilah yang digunakan pada penjadwalan proses:", o:["Antrian","Prioritas","Antrian, prioritas, preempsi","Preempsi","Antrian, prioritas"]},
+  {n:14, t:"Lama proses pada penjadwalan proses dilambangkan oleh:", o:["S","U","P","t","T"]},
+  {n:15, t:"Perbandingan antara lama tanggap terhadap lama proses disebut:", o:["Waktu sia-sia","Rasio tanggap","Lama proses","Lama tanggap","Rasio pinalti"]},
+  {n:16, t:"Ketentuan pada penjadwalan tanpa prioritas dengan preempsi:", o:["Kuantum waktu: waktu yang digunakan prosesor untuk melayani tiap proses","Prioritas berdasarkan pendeknya sisa proses","Diperhatikan saat proses tiba atau selesai","Menghitung sisa proses dari semua proses","Jika proses dengan sisa proses yang lebih pendek"]},
+  {n:17, t:"Ketentuan pada penjadwalan dengan prioritas dan preempsi:", o:["Kuantum waktu untuk tiap proses","Prioritas berdasarkan pendeknya sisa proses","Prosesor melayani berdasarkan antrian","Prosesor melayani sesuai kuantum waktu yang ditentukan","Jika proses dengan sisa proses yang lebih panjang"]},
+  {n:18, t:"Penjadwalan dengan prioritas dengan preempsi:", o:["SRT/PSPN (Shortest Remaining Time/Preemptive SPT)","HPRN/RPTD (Rasio Pinalti Tertinggi Dipertamakan)","Round Robin/Time Slice","Waktu Cari Terpendek Dipertamakan","Circular Look"]},
+  {n:19, t:"Penjadwalan dengan prioritas tanpa preempsi:", o:["SRT/PSPN","HPRN/RPTD","Round Robin","Waktu Cari Terpendek Dipertamakan","Circular Look"]},
+  {n:20, t:"Penjadwalan tanpa prioritas dengan preempsi:", o:["SRT/PSPN","HPRN/RPTD","Round Robin/Time Slice","WCTD","Circular Look"]},
+  {n:21, t:"Proses disebut konkuren apabila proses tersebut …", o:["Hanya di satu proses","Berada pada saat yang tidak sama","Saling tidak berinteraksi","Bisa tidak saling bergantung","Saling bergantungan"]},
+  {n:22, t:"Menjamin hanya satu proses mengakses resource pada interval tertentu disebut …", o:["Mutual exclusion","Deadlock","Starvation","Sinkronisasi","Konkurensi"]},
+  {n:23, t:"Yang tidak termasuk aspek kebutuhan keamanan sistem komputer yaitu …", o:["Kerahasiaan","Ketersediaan","Integritas","Privasi","Integrasi"]},
+  {n:24, t:"Keamanan terkait identifikasi pemakai sebelum diizinkan mengakses program dan data:", o:["Keamanan Eksternal","Keamanan Antarmuka Pemakai","Keamanan Internal","Keamanan Ekstern","Keamanan Standar"]},
+  {n:25, t:"Program yang mengkonsumsi resource sistem dengan replikasi dirinya sendiri adalah …", o:["Worm","Virus","Bacteria","Trapdoor","Trojan horse"]},
+  {n:26, t:"Membatalkan perintah yang diinstruksikan ke sistem (Linux terminal):", o:["Ctrl+C atau Ctrl+Z","Ctrl+A","Ctrl+U","Ctrl+B","Ctrl+I"]},
+  {n:27, t:"Untuk mencoba perintah dasar Linux, buka …", o:["Session","Setting","Terminal atau Konsole","View","Edit"]},
+  {n:28, t:"Sesuatu yang diproses oleh perintah (mis. nama file/direktori) disebut:", o:["Option","Path","Argument","Prompt","Nama Perintah"]},
+  {n:29, t:"Melihat file/dir pada direktori aktif beserta atributnya, perintah:", o:["man ls","mkdir","cd","ls -l","ls -la /etc"]},
+  {n:30, t:"Memberikan input dari satu proses dari output proses lain adalah fungsi …", o:["Command History","Wildcards","Alias","Command Line Completion","Pipeline"]},
+];
+
+// Kunci jawaban dari Anda
+const KEY_MAP = { 1:'B',2:'A',3:'E',4:'C',5:'B',6:'D',7:'D',8:'E',9:'A',10:'C',
+                  11:'B',12:'A',13:'C',14:'D',15:'E',16:'A',17:'B',18:'A',19:'B',20:'C',
+                  21:'D',22:'A',23:'E',24:'B',25:'C',26:'A',27:'C',28:'B',29:'D',30:'E' };
+
+/* ======= STATE ======= */
+const NS = "os_quiz_p7_oneview_v2";
+let index = loadNumber(NS+"_index",0);
+let answers = loadJSON(NS+"_answers") || {};
+let instantCheck = loadBool(NS+"_instant", false);
+
+/* ======= INIT ======= */
+$(function(){
+  $("#totalCount").text(QUESTIONS.length);
+  $("#toggleInstant").prop("checked", instantCheck);
+  applyThemeFromPref();
+  renderCurrent();
+
+  $("#btnPrev").on("click", ()=>gotoDelta(-1));
+  $("#btnNext").on("click", ()=>gotoDelta(1));
+  $("#btnCheck").on("click", ()=>checkCurrent(true));
+  $("#btnExplain").on("click", ()=>$("#explainBox").slideToggle(150));
+  $("#btnReset").on("click", openResetModal);
+  $("#confirmResetBtn").on("click", confirmReset);
+  $("#toggleInstant").on("change", function(){ instantCheck=this.checked; saveBool(NS+"_instant", instantCheck); });
+  $("#btnCopy").on("click", copyQuestion);
+  $("#themeSwitch").on("change", toggleTheme);
+});
+
+/* ======= RENDER ======= */
+function renderCurrent(){
+  if(index<0) index=0;
+  if(index>=QUESTIONS.length) index=QUESTIONS.length-1;
+  const q = QUESTIONS[index];
+  const sel = answers[q.n] || null;
+
+  $("#qPos").text(index+1);
+  $("#qTotal").text(QUESTIONS.length);
+  $("#qNumber").text(q.n);
+  $("#hdrNumber").text(q.n);
+  $("#badgeNumber").text("#"+q.n);
+  $("#qText").text(q.t);
+
+  const $choices = $("#choices").empty();
+  q.o.forEach((opt,i)=>{
+    const letter=String.fromCharCode(65+i);
+    const checked=sel===letter?"checked":"";
+    $choices.append(`
+      <div class="choice-item">
+        <input type="radio" name="choice" id="ch-${letter}" value="${letter}" ${checked}>
+        <label for="ch-${letter}"><span class="fw-semibold">${letter}.</span> ${escapeHTML(opt)}</label>
+      </div>
+    `);
+  });
+  $("input[name='choice']").on("change", function(){
+    const v = $(this).val();
+    answers[q.n]=v; saveJSON(NS+"_answers",answers);
+    updateProgress();
+    if(instantCheck) checkCurrent(false);
+  });
+
+  $("#btnPrev").prop("disabled", index===0);
+  $("#btnNext").prop("disabled", index===QUESTIONS.length-1);
+
+  $("#resultBox").addClass("d-none").removeClass("alert-success alert-danger alert-warning");
+  $("#resultMsg").empty();
+  $("#explainBox").hide();
+  $("#explainText").html(buildExplain(q));
+  if(answers[q.n] && instantCheck) checkCurrent(false);
+  updateProgress();
+}
+function gotoDelta(d){ index+=d; saveNumber(NS+"_index", index); renderCurrent(); }
+
+/* ======= CHECK & PROGRESS ======= */
+function checkCurrent(pushAlert){
+  const q = QUESTIONS[index];
+  const chosen = answers[q.n] || null;
+  const key = KEY_MAP[q.n];
+  $("#choices label").removeClass("choice-correct choice-wrong");
+  $("#resultBox").removeClass("d-none alert-success alert-danger alert-warning");
+
+  if(!chosen){
+    $("#resultBox").addClass("alert-warning").addClass("fade show");
+    $("#resultMsg").text("Belum memilih jawaban.");
+    if(pushAlert) addAlert("warning","Belum memilih jawaban.");
+  } else {
+    $("#choices .choice-item").each(function(){
+      const letter=$(this).find("input").val();
+      if(letter===key) $(this).find("label").addClass("choice-correct");
+      if(letter===chosen && chosen!==key) $(this).find("label").addClass("choice-wrong");
+    });
+    if(chosen===key){
+      $("#resultBox").addClass("alert-success").addClass("fade show");
+      $("#resultMsg").html(`<i class="bi bi-check-circle"></i> Benar (Kunci: ${key})`);
+      if(pushAlert) addAlert("success",`Soal ${q.n}: Benar.`);
+    } else {
+      $("#resultBox").addClass("alert-danger").addClass("fade show");
+      $("#resultMsg").html(`<i class="bi bi-x-circle"></i> Salah (Pilihan: ${chosen}; Kunci: ${key})`);
+      if(pushAlert) addAlert("danger",`Soal ${q.n}: Salah. Kunci ${key}.`);
+    }
+  }
+  updateProgress();
+}
+function updateProgress(){
+  const total=QUESTIONS.length;
+  const answered=Object.keys(answers).filter(k=>!!answers[k]).length;
+  $("#answeredCount").text(answered);
+  let correct=0; for(const k in answers){ const qn=parseInt(k,10); if(KEY_MAP[qn] && answers[k]===KEY_MAP[qn]) correct++; }
+  const pct=Math.round((answered/total)*100);
+  $("#progressBar").css("width",pct+"%").text(pct+"%");
+  $("#scoreBadge").text(answered>0?`Skor: ${correct}/${total} (${Math.round(correct/total*100)}%)`:"Skor: —");
+}
+
+/* ======= EXPLANATIONS ======= */
+function buildExplain(q){
+  const key=KEY_MAP[q.n]; const text=(L)=> q.o[L.charCodeAt(0)-65];
+  const BASE = {
+    os:"OS = resource manager; layanan (system call) untuk proses, memori, berkas, I/O.",
+    disk:"Disk: MR, PRML, SPS (peredam guncangan), SSD; penjadwalan FCFS, SCAN, C-SCAN, LOOK, C-LOOK.",
+    sched:"Scheduling: short/medium/long term; preemptive/non-preemptive; metrik throughput/turnaround/response; SRT/PSPN, RR, HPRN.",
+    sec:"Security: CIA (Confidentiality, Integrity, Availability), autentikasi/otorisasi, malware (virus, worm, trojan, bacteria).",
+    linux:"Linux shell: Terminal; Ctrl+C/Z; argumen/opsi; pipeline (|); ls -l untuk atribut."
+  };
+  let extra="";
+  switch(q.n){
+    case 1:  extra=" Resource Manager menggambarkan fungsi inti OS."; break;
+    case 3:  extra=" Sumber daya fisik: perangkat input/output, memori, CPU, dll."; break;
+    case 4:  extra=" Pembuatan program: fasilitas untuk menulis/membangun program (editor, compiler, linker)."; break;
+    case 6:  extra=" SPS meredam guncangan agar head tidak terangkat."; break;
+    case 7:  extra=" SSD tidak memakai piringan magnetik; varian awal berbasis DRAM/flash."; break;
+    case 8:  extra=" Pola naik-ke-ujung-lalu-loncat sirkular = C-SCAN."; break;
+    case 9:  extra=" Urutan kedatangan antrian = FCFS."; break;
+    case 14: extra=" Notasi umum untuk lama proses: t (time)."; break;
+    case 16: extra=" Tanpa prioritas + preemptive = Round Robin (kuantum waktu)."; break;
+    case 17: extra=" Prioritas + preemptive = SRT/PSPN (sisa proses terpendek)."; break;
+    case 19: extra=" Prioritas tanpa preemptive = HPRN/RPTD."; break;
+    case 20: extra=" Tanpa prioritas + preemptive = Round Robin."; break;
+    case 23: extra=" ‘Integrasi’ bukan pilar CIA; yang benar: Confidentiality, Integrity, Availability."; break;
+    case 26: extra=" Ctrl+C (SIGINT) menghentikan; Ctrl+Z (SIGTSTP) suspend."; break;
+    case 29: extra=" `ls -l` menampilkan daftar + atribut (permission, owner, size, waktu)."; break;
+    case 30: extra=" Pipeline (|) mengalirkan stdout proses A → stdin proses B."; break;
+  }
+  let base = BASE.os;
+  if([6,7,8,9,10].includes(q.n)) base=BASE.disk;
+  else if([11,12,13,14,15,16,17,18,19,20,21,22].includes(q.n)) base=BASE.sched;
+  else if([23,24,25].includes(q.n)) base=BASE.sec;
+  else if([26,27,28,29,30].includes(q.n)) base=BASE.linux;
+
+  return `<div><strong>Kunci:</strong> <code>${key}</code> → ${escapeHTML(text(key))}</div>
+          <div class="mt-1">${base}${extra?(" "+extra):""}</div>`;
+}
+
+/* ======= ALERTS & MODALS ======= */
+function addAlert(type,msg){
+  const id="al-"+Date.now();
+  const html = `<div id="${id}" class="alert alert-${type} alert-dismissible fade show shadow-sm" role="alert">
+    ${escapeHTML(msg)}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>`;
+  $("#globalAlerts").append(html);
+  setTimeout(()=>{ const el=document.getElementById(id); if(el){ bootstrap.Alert.getOrCreateInstance(el).close(); } }, 3000);
+}
+function openResetModal(){ new bootstrap.Modal('#confirmResetModal').show(); }
+function confirmReset(){
+  answers={}; saveJSON(NS+"_answers", answers);
+  index=0; saveNumber(NS+"_index", index);
+  $("#toggleInstant").prop("checked", false); instantCheck=false; saveBool(NS+"_instant", false);
+  bootstrap.Modal.getInstance(document.getElementById('confirmResetModal')).hide();
+  renderCurrent(); addAlert("success","Jawaban direset.");
+}
+
+/* ======= THEME ======= */
+function applyThemeFromPref(){
+  const saved=localStorage.getItem(NS+"_theme");
+  if(saved){ document.body.setAttribute("data-bs-theme", saved); $("#themeSwitch").prop("checked", saved==="dark"); }
+}
+function toggleTheme(){ const mode=this.checked?"dark":"light"; document.body.setAttribute("data-bs-theme", mode); localStorage.setItem(NS+"_theme", mode); }
+
+/* ======= UTIL ======= */
+function copyQuestion(){
+  const q=QUESTIONS[index];
+  const text = `(${q.n}) ${q.t}\n` + q.o.map((o,i)=>`${String.fromCharCode(65+i)}. ${o}`).join("\n");
+  navigator.clipboard.writeText(text); addAlert("info","Soal disalin ke clipboard.");
+}
+function escapeHTML(s){ return String(s).replace(/[&<>"']/g, m=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[m])); }
+function loadJSON(key){ try{ return JSON.parse(localStorage.getItem(key)||"null"); }catch(e){ return null; } }
+function saveJSON(key,obj){ localStorage.setItem(key, JSON.stringify(obj)); }
+function saveNumber(key,n){ localStorage.setItem(key, String(n)); }
+function loadNumber(key,def){ const s=localStorage.getItem(key); const n=s===null?def:parseInt(s,10); return Number.isFinite(n)?n:def; }
+function saveBool(key,v){ localStorage.setItem(key, v?"1":"0"); }
+function loadBool(key,def){ const s=localStorage.getItem(key); return s===null?def:(s==="1"); }
+</script>
+</body>
+</html>
