@@ -1,0 +1,846 @@
+<!doctype html>
+<html lang="id">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pengenalan Sistem Operasi</title>
+  <script src="/_sdk/element_sdk.js"></script>
+  <style>
+        body {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 60px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-content {
+            max-width: 800px;
+            z-index: 2;
+            animation: fadeIn 1s ease-out;
+        }
+
+        .hero h1 {
+            font-size: 3em;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .hero p {
+            font-size: 1.3em;
+            margin-bottom: 30px;
+            opacity: 0.95;
+        }
+
+        .hero-illustration {
+            margin-top: 40px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+
+        /* Section Styling */
+        .section {
+            padding: 80px 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 50px;
+            color: #2D6CDF;
+            font-weight: 700;
+        }
+
+        /* OS Cards Grid */
+        .os-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .os-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .os-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(45, 108, 223, 0.3);
+        }
+
+        .os-card svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+        }
+
+        .os-card h3 {
+            color: #2D6CDF;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+
+        .os-card p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        /* Linux Section */
+        .linux-section {
+            background: white;
+            border-radius: 20px;
+            padding: 60px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 50px;
+            align-items: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            animation: slideLeft 0.8s ease-out;
+        }
+
+        @keyframes slideLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .linux-content h2 {
+            color: #2D6CDF;
+            font-size: 2.2em;
+            margin-bottom: 20px;
+        }
+
+        .linux-content p {
+            color: #555;
+            line-height: 1.8;
+            margin-bottom: 15px;
+        }
+
+        /* Carousel */
+        .carousel-container {
+            position: relative;
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .carousel {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            min-height: 300px;
+        }
+
+        .carousel-content {
+            display: none;
+        }
+
+        .carousel-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .carousel h3 {
+            color: #2D6CDF;
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
+
+        .carousel-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .carousel-btn {
+            background: #2D6CDF;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        .carousel-btn:hover {
+            background: #1e4fa8;
+            transform: translateY(-2px);
+        }
+
+        .carousel-dots {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ddd;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .dot.active {
+            background: #2D6CDF;
+            width: 30px;
+            border-radius: 6px;
+        }
+
+        /* Slax Section */
+        .slax-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 20px;
+            padding: 60px;
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 40px;
+            align-items: center;
+        }
+
+        .slax-content h2 {
+            font-size: 2.5em;
+            margin-bottom: 25px;
+        }
+
+        .slax-content p {
+            font-size: 1.1em;
+            line-height: 1.8;
+            margin-bottom: 15px;
+        }
+
+        .slax-features {
+            margin-top: 25px;
+        }
+
+        .slax-features li {
+            margin-bottom: 12px;
+            font-size: 1.05em;
+            list-style: none;
+            padding-left: 25px;
+            position: relative;
+        }
+
+        .slax-features li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #4ade80;
+            font-weight: bold;
+        }
+
+        /* Syntax Section */
+        .syntax-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 40px;
+        }
+
+        .syntax-block {
+            background: #1e293b;
+            color: #e2e8f0;
+            border-radius: 12px;
+            padding: 25px;
+            font-family: 'Courier New', monospace;
+            position: relative;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .syntax-block:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(45, 108, 223, 0.3);
+        }
+
+        .syntax-block code {
+            color: #4ade80;
+            font-size: 1.1em;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .tooltip {
+            position: absolute;
+            background: #2D6CDF;
+            color: white;
+            padding: 12px 18px;
+            border-radius: 8px;
+            font-size: 0.9em;
+            font-family: 'Segoe UI', sans-serif;
+            bottom: 110%;
+            left: 50%;
+            transform: translateX(-50%);
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 10;
+        }
+
+        .tooltip::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 8px solid transparent;
+            border-top-color: #2D6CDF;
+        }
+
+        .syntax-block:hover .tooltip {
+            opacity: 1;
+        }
+
+        /* Footer */
+        footer {
+            background: #1e293b;
+            color: white;
+            padding: 50px 20px;
+            text-align: center;
+        }
+
+        .footer-nav {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .footer-nav a {
+            color: white;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-nav a:hover {
+            color: #2D6CDF;
+        }
+
+        .footer-cta {
+            background: #2D6CDF;
+            color: white;
+            padding: 15px 35px;
+            border-radius: 30px;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .footer-cta:hover {
+            background: #1e4fa8;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(45, 108, 223, 0.4);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2em;
+            }
+
+            .hero p {
+                font-size: 1.1em;
+            }
+
+            .section-title {
+                font-size: 2em;
+            }
+
+            .linux-section,
+            .slax-section {
+                grid-template-columns: 1fr;
+                padding: 40px 30px;
+            }
+
+            .os-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .syntax-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-nav {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+    </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+ </head>
+ <body><!-- Hero Section -->
+  <section class="hero">
+   <div class="hero-content">
+    <h1 id="hero-title">Pengenalan Sistem Operasi</h1>
+    <p id="hero-subtitle">Pelajari sistem operasi yang menjalankan perangkat Anda setiap hari</p>
+    <div class="hero-illustration">
+     <svg width="300" height="200" viewbox="0 0 300 200"><rect x="50" y="30" width="200" height="140" rx="10" fill="#ffffff" opacity="0.2" /> <rect x="60" y="50" width="180" height="100" rx="5" fill="#2D6CDF" /> <circle cx="150" cy="100" r="25" fill="#ffffff" /> <path d="M 140 100 L 150 110 L 165 90" stroke="#2D6CDF" stroke-width="4" fill="none" stroke-linecap="round" /> <rect x="70" y="160" width="50" height="8" rx="4" fill="#ffffff" opacity="0.3" /> <rect x="130" y="160" width="70" height="8" rx="4" fill="#ffffff" opacity="0.3" /> <rect x="210" y="160" width="40" height="8" rx="4" fill="#ffffff" opacity="0.3" />
+     </svg>
+    </div>
+   </div>
+  </section><!-- Macam-Macam OS -->
+  <section class="section">
+   <h2 class="section-title" id="os-section-title">Macam-Macam Sistem Operasi</h2>
+   <div class="os-grid">
+    <div class="os-card">
+     <svg viewbox="0 0 100 100"><rect x="10" y="10" width="35" height="35" fill="#2D6CDF" /> <rect x="55" y="10" width="35" height="35" fill="#2D6CDF" /> <rect x="10" y="55" width="35" height="35" fill="#2D6CDF" /> <rect x="55" y="55" width="35" height="35" fill="#2D6CDF" />
+     </svg>
+     <h3>Windows</h3>
+     <p>Sistem operasi paling populer untuk PC desktop dan laptop, dikembangkan oleh Microsoft dengan antarmuka grafis yang user-friendly.</p>
+    </div>
+    <div class="os-card">
+     <svg viewbox="0 0 100 100"><path d="M 50 10 L 20 90 L 80 90 Z" fill="none" stroke="#2D6CDF" stroke-width="4" /> <circle cx="50" cy="45" r="15" fill="#2D6CDF" /> <path d="M 35 70 Q 50 60 65 70" fill="none" stroke="#2D6CDF" stroke-width="3" />
+     </svg>
+     <h3>macOS</h3>
+     <p>Sistem operasi eksklusif untuk komputer Apple dengan desain elegan dan integrasi sempurna dengan ekosistem Apple.</p>
+    </div>
+    <div class="os-card">
+     <svg viewbox="0 0 100 100"><circle cx="50" cy="50" r="35" fill="none" stroke="#2D6CDF" stroke-width="4" /> <path d="M 50 20 L 50 50 L 70 65" stroke="#2D6CDF" stroke-width="4" stroke-linecap="round" /> <circle cx="50" cy="50" r="5" fill="#2D6CDF" />
+     </svg>
+     <h3>Linux</h3>
+     <p>Sistem operasi open-source yang powerful dan customizable, populer di kalangan developer dan server.</p>
+    </div>
+    <div class="os-card">
+     <svg viewbox="0 0 100 100"><path d="M 30 30 L 70 30 L 70 70 L 30 70 Z" fill="none" stroke="#2D6CDF" stroke-width="4" stroke-linejoin="round" /> <circle cx="50" cy="42" r="8" fill="#2D6CDF" /> <rect x="35" y="55" width="10" height="10" rx="2" fill="#2D6CDF" /> <rect x="55" y="55" width="10" height="10" rx="2" fill="#2D6CDF" /> <rect x="45" y="55" width="10" height="10" rx="2" fill="#2D6CDF" />
+     </svg>
+     <h3>Android</h3>
+     <p>Sistem operasi mobile berbasis Linux yang paling banyak digunakan di smartphone dan tablet di seluruh dunia.</p>
+    </div>
+    <div class="os-card">
+     <svg viewbox="0 0 100 100"><rect x="25" y="15" width="50" height="70" rx="8" fill="none" stroke="#2D6CDF" stroke-width="4" /> <circle cx="50" cy="75" r="4" fill="#2D6CDF" /> <rect x="35" y="25" width="30" height="35" rx="3" fill="#2D6CDF" />
+     </svg>
+     <h3>iOS</h3>
+     <p>Sistem operasi mobile Apple yang dikenal dengan keamanan tinggi, performa optimal, dan ekosistem app yang berkualitas.</p>
+    </div>
+   </div>
+  </section><!-- Linux Section -->
+  <section class="section">
+   <div class="linux-section">
+    <div class="linux-content">
+     <h2 id="linux-section-title">Tentang Linux</h2>
+     <p><strong>Linux</strong> adalah sistem operasi open-source yang dikembangkan oleh Linus Torvalds pada tahun 1991. Berbeda dengan sistem operasi proprietary, Linux memberikan kebebasan penuh kepada pengguna untuk melihat, memodifikasi, dan mendistribusikan kode sumbernya.</p>
+     <p><strong>Kernel Linux</strong> adalah inti dari sistem operasi yang mengelola hardware dan memfasilitasi komunikasi antara software dan hardware. Filosofi open-source memungkinkan ribuan developer di seluruh dunia berkontribusi dalam pengembangan Linux.</p>
+     <p>Linux sangat populer di server, supercomputer, dan semakin banyak digunakan di desktop. Keamanan, stabilitas, dan fleksibilitas adalah keunggulan utama Linux.</p>
+    </div>
+    <div>
+     <svg width="250" height="250" viewbox="0 0 250 250"><!-- Tux the Penguin --> <ellipse cx="125" cy="200" rx="60" ry="20" fill="#333" opacity="0.3" /> <ellipse cx="125" cy="160" rx="50" ry="65" fill="#000" /> <ellipse cx="125" cy="155" rx="45" ry="55" fill="#fff" /> <ellipse cx="125" cy="170" rx="40" ry="45" fill="#000" /> <circle cx="110" cy="145" r="8" fill="#000" /> <circle cx="140" cy="145" r="8" fill="#000" /> <circle cx="112" cy="143" r="3" fill="#fff" /> <circle cx="142" cy="143" r="3" fill="#fff" /> <path d="M 115 160 Q 125 165 135 160" fill="none" stroke="#f59e0b" stroke-width="2" /> <ellipse cx="125" cy="165" rx="6" ry="8" fill="#f59e0b" /> <path d="M 85 175 Q 90 190 95 185" fill="#f59e0b" /> <path d="M 165 175 Q 160 190 155 185" fill="#f59e0b" /> <ellipse cx="90" cy="195" rx="12" ry="18" fill="#f59e0b" /> <ellipse cx="160" cy="195" rx="12" ry="18" fill="#f59e0b" />
+     </svg>
+    </div>
+   </div>
+  </section><!-- Distro Linux Carousel -->
+  <section class="section">
+   <h2 class="section-title" id="distro-section-title">Distro-Distro Linux Populer</h2>
+   <div class="carousel-container">
+    <div class="carousel">
+     <div class="carousel-content active" data-index="0">
+      <svg width="100" height="100" viewbox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#E95420" /> <text x="50" y="60" text-anchor="middle" fill="white" font-size="24" font-weight="bold">
+        U
+       </text>
+      </svg>
+      <h3>Ubuntu</h3>
+      <p>Distro Linux paling populer dan user-friendly, cocok untuk pemula. Berbasis Debian dengan dukungan komunitas yang luas dan update teratur setiap 6 bulan.</p>
+     </div>
+     <div class="carousel-content" data-index="1">
+      <svg width="100" height="100" viewbox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#A80030" /> <path d="M 30 50 L 50 30 L 70 50 L 50 70 Z" fill="white" />
+      </svg>
+      <h3>Debian</h3>
+      <p>Distro yang sangat stabil dan menjadi basis banyak distro lain. Dikenal dengan komitmen terhadap software bebas dan siklus rilis yang matang.</p>
+     </div>
+     <div class="carousel-content" data-index="2">
+      <svg width="100" height="100" viewbox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#294172" /> <path d="M 35 45 Q 50 30 65 45 Q 50 60 35 45" fill="white" />
+      </svg>
+      <h3>Fedora</h3>
+      <p>Distro yang selalu menghadirkan teknologi terbaru, disponsori oleh Red Hat. Cocok untuk developer yang ingin menggunakan software cutting-edge.</p>
+     </div>
+     <div class="carousel-content" data-index="3">
+      <svg width="100" height="100" viewbox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#1793D1" /> <path d="M 30 60 L 50 35 L 70 60 Z" fill="white" />
+      </svg>
+      <h3>Arch Linux</h3>
+      <p>Distro minimalis untuk pengguna advanced. Menggunakan filosofi KISS (Keep It Simple, Stupid) dan memberikan kontrol penuh kepada pengguna.</p>
+     </div>
+     <div class="carousel-content" data-index="4">
+      <svg width="100" height="100" viewbox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#87CF3E" /> <text x="50" y="60" text-anchor="middle" fill="white" font-size="24" font-weight="bold">
+        M
+       </text>
+      </svg>
+      <h3>Linux Mint</h3>
+      <p>Distro yang sangat mudah digunakan dengan tampilan familiar bagi pengguna Windows. Berbasis Ubuntu dengan berbagai desktop environment pilihan.</p>
+     </div>
+    </div>
+    <div class="carousel-controls"><button class="carousel-btn" onclick="previousSlide()">← Sebelumnya</button> <button class="carousel-btn" onclick="nextSlide()">Selanjutnya →</button>
+    </div>
+    <div class="carousel-dots" id="carouselDots"></div>
+   </div>
+  </section><!-- Slax Section -->
+  <section class="section">
+   <div class="slax-section">
+    <div class="slax-content">
+     <h2 id="slax-section-title">Apa itu Slax?</h2>
+     <p><strong>Slax</strong> adalah distribusi Linux yang ringan, cepat, dan portable berbasis Debian. Dirancang khusus untuk berjalan dari USB flash drive atau CD tanpa perlu instalasi ke hard disk.</p>
+     <p>Slax sangat ideal untuk troubleshooting sistem, recovery data, atau sebagai sistem operasi portable yang bisa dibawa kemana-mana.</p>
+     <ul class="slax-features">
+      <li>Ukuran sangat kecil (~300MB) namun powerful</li>
+      <li>Boot super cepat dari USB drive</li>
+      <li>Tidak perlu instalasi, langsung pakai</li>
+      <li>Modular - tambahkan aplikasi sesuai kebutuhan</li>
+      <li>Cocok untuk rescue system dan recovery</li>
+     </ul>
+    </div>
+    <div>
+     <svg width="200" height="200" viewbox="0 0 200 200"><rect x="30" y="60" width="140" height="90" rx="8" fill="#1e293b" /> <rect x="40" y="70" width="120" height="70" rx="4" fill="#0ea5e9" /> <rect x="50" y="80" width="100" height="3" rx="1.5" fill="#fff" opacity="0.6" /> <rect x="50" y="90" width="80" height="3" rx="1.5" fill="#fff" opacity="0.6" /> <rect x="50" y="100" width="90" height="3" rx="1.5" fill="#fff" opacity="0.6" /> <rect x="50" y="110" width="70" height="3" rx="1.5" fill="#fff" opacity="0.6" /> <ellipse cx="100" cy="160" rx="50" ry="8" fill="#1e293b" opacity="0.3" /> <rect x="80" y="150" width="40" height="15" rx="2" fill="#64748b" />
+     </svg>
+    </div>
+   </div>
+  </section><!-- Syntax Section -->
+  <section class="section">
+   <h2 class="section-title" id="syntax-section-title">Syntax Slax yang Umum Digunakan</h2>
+   <div class="syntax-grid">
+    <div class="syntax-block"><code>ls</code>
+     <p style="color: #94a3b8; font-size: 0.95em;">Menampilkan daftar file</p>
+     <div class="tooltip">
+      Menampilkan daftar file dan folder di direktori saat ini
+     </div>
+    </div>
+    <div class="syntax-block"><code>pwd</code>
+     <p style="color: #94a3b8; font-size: 0.95em;">Print working directory</p>
+     <div class="tooltip">
+      Menampilkan path direktori kerja saat ini
+     </div>
+    </div>
+    <div class="syntax-block"><code>cd [direktori]</code>
+     <p style="color: #94a3b8; font-size: 0.95em;">Pindah direktori</p>
+     <div class="tooltip">
+      Berpindah ke direktori yang ditentukan
+     </div>
+    </div>
+    <div class="syntax-block"><code>mkdir [nama]</code>
+     <p style="color: #94a3b8; font-size: 0.95em;">Buat direktori baru</p>
+     <div class="tooltip">
+      Membuat folder/direktori baru dengan nama yang ditentukan
+     </div>
+    </div>
+    <div class="syntax-block"><code>rmdir [nama]</code>
+     <p style="color: #94a3b8; font-size: 0.95em;">Hapus direktori kosong</p>
+     <div class="tooltip">
+      Menghapus direktori yang kosong
+     </div>
+    </div>
+    <div class="syntax-block"><code>apt-get update</code>
+     <p style="color: #94a3b8; font-size: 0.95em;">Update daftar paket</p>
+     <div class="tooltip">
+      Memperbarui daftar paket yang tersedia dari repository
+     </div>
+    </div>
+    <div class="syntax-block"><code>apt-get install [paket]</code>
+     <p style="color: #94a3b8; font-size: 0.95em;">Install paket software</p>
+     <div class="tooltip">
+      Menginstall paket software yang ditentukan
+     </div>
+    </div>
+    <div class="syntax-block"><code>rm [file]</code>
+     <p style="color: #94a3b8; font-size: 0.95em;">Hapus file</p>
+     <div class="tooltip">
+      Menghapus file yang ditentukan
+     </div>
+    </div>
+   </div>
+  </section><!-- Footer -->
+  <footer>
+   <nav class="footer-nav"><a href="#hero">Beranda</a> <a href="#os">Sistem Operasi</a> <a href="#linux">Linux</a> <a href="#distro">Distro</a> <a href="#slax">Slax</a>
+   </nav><a href="https://www.linux.org" target="_blank" rel="noopener noreferrer" class="footer-cta" id="footer-cta">Pelajari lebih lanjut tentang Linux</a>
+   <p style="margin-top: 30px; opacity: 0.7;">© 2024 Sistem Operasi Edukasi. Semua hak dilindungi.</p>
+  </footer>
+  <script>
+        const defaultConfig = {
+            hero_title: "Pengenalan Sistem Operasi",
+            hero_subtitle: "Pelajari sistem operasi yang menjalankan perangkat Anda setiap hari",
+            os_section_title: "Macam-Macam Sistem Operasi",
+            linux_section_title: "Tentang Linux",
+            distro_section_title: "Distro-Distro Linux Populer",
+            slax_section_title: "Apa itu Slax?",
+            syntax_section_title: "Syntax Slax yang Umum Digunakan",
+            footer_cta: "Pelajari lebih lanjut tentang Linux",
+            background_color: "#f5f7fa",
+            primary_color: "#2D6CDF",
+            text_color: "#333333",
+            card_background: "#ffffff",
+            accent_color: "#667eea",
+            font_family: "Segoe UI",
+            font_size: 16
+        };
+
+        let currentSlide = 0;
+        const totalSlides = 5;
+
+        function initCarousel() {
+            const dotsContainer = document.getElementById('carouselDots');
+            for (let i = 0; i < totalSlides; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'dot' + (i === 0 ? ' active' : '');
+                dot.onclick = () => goToSlide(i);
+                dotsContainer.appendChild(dot);
+            }
+        }
+
+        function updateCarousel() {
+            const contents = document.querySelectorAll('.carousel-content');
+            const dots = document.querySelectorAll('.dot');
+            
+            contents.forEach((content, index) => {
+                if (index === currentSlide) {
+                    content.classList.add('active');
+                } else {
+                    content.classList.remove('active');
+                }
+            });
+            
+            dots.forEach((dot, index) => {
+                if (index === currentSlide) {
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
+                }
+            });
+        }
+
+        function nextSlide() {
+            currentSlide = (currentSlide + 1) % totalSlides;
+            updateCarousel();
+        }
+
+        function previousSlide() {
+            currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+            updateCarousel();
+        }
+
+        function goToSlide(index) {
+            currentSlide = index;
+            updateCarousel();
+        }
+
+        async function onConfigChange(config) {
+            const customFont = config.font_family || defaultConfig.font_family;
+            const baseFontStack = 'Tahoma, Geneva, Verdana, sans-serif';
+            const baseSize = config.font_size || defaultConfig.font_size;
+            
+            document.body.style.fontFamily = `${customFont}, ${baseFontStack}`;
+            document.body.style.fontSize = `${baseSize}px`;
+            
+            const heroTitle = document.getElementById('hero-title');
+            if (heroTitle) {
+                heroTitle.textContent = config.hero_title || defaultConfig.hero_title;
+                heroTitle.style.fontSize = `${baseSize * 2}px`;
+            }
+            
+            const heroSubtitle = document.getElementById('hero-subtitle');
+            if (heroSubtitle) {
+                heroSubtitle.textContent = config.hero_subtitle || defaultConfig.hero_subtitle;
+                heroSubtitle.style.fontSize = `${baseSize * 1.3}px`;
+            }
+            
+            const osSectionTitle = document.getElementById('os-section-title');
+            if (osSectionTitle) {
+                osSectionTitle.textContent = config.os_section_title || defaultConfig.os_section_title;
+                osSectionTitle.style.color = config.primary_color || defaultConfig.primary_color;
+                osSectionTitle.style.fontSize = `${baseSize * 2.5}px`;
+            }
+            
+            const linuxSectionTitle = document.getElementById('linux-section-title');
+            if (linuxSectionTitle) {
+                linuxSectionTitle.textContent = config.linux_section_title || defaultConfig.linux_section_title;
+                linuxSectionTitle.style.color = config.primary_color || defaultConfig.primary_color;
+                linuxSectionTitle.style.fontSize = `${baseSize * 2.2}px`;
+            }
+            
+            const distroSectionTitle = document.getElementById('distro-section-title');
+            if (distroSectionTitle) {
+                distroSectionTitle.textContent = config.distro_section_title || defaultConfig.distro_section_title;
+                distroSectionTitle.style.color = config.primary_color || defaultConfig.primary_color;
+                distroSectionTitle.style.fontSize = `${baseSize * 2.5}px`;
+            }
+            
+            const slaxSectionTitle = document.getElementById('slax-section-title');
+            if (slaxSectionTitle) {
+                slaxSectionTitle.textContent = config.slax_section_title || defaultConfig.slax_section_title;
+                slaxSectionTitle.style.fontSize = `${baseSize * 2.5}px`;
+            }
+            
+            const syntaxSectionTitle = document.getElementById('syntax-section-title');
+            if (syntaxSectionTitle) {
+                syntaxSectionTitle.textContent = config.syntax_section_title || defaultConfig.syntax_section_title;
+                syntaxSectionTitle.style.color = config.primary_color || defaultConfig.primary_color;
+                syntaxSectionTitle.style.fontSize = `${baseSize * 2.5}px`;
+            }
+            
+            const footerCta = document.getElementById('footer-cta');
+            if (footerCta) {
+                footerCta.textContent = config.footer_cta || defaultConfig.footer_cta;
+                footerCta.style.background = config.primary_color || defaultConfig.primary_color;
+                footerCta.style.fontSize = `${baseSize}px`;
+            }
+            
+            const osCardTitles = document.querySelectorAll('.os-card h3');
+            osCardTitles.forEach(title => {
+                title.style.color = config.primary_color || defaultConfig.primary_color;
+                title.style.fontSize = `${baseSize * 1.5}px`;
+            });
+            
+            const osCards = document.querySelectorAll('.os-card');
+            osCards.forEach(card => {
+                card.style.background = config.card_background || defaultConfig.card_background;
+            });
+            
+            const carouselBtns = document.querySelectorAll('.carousel-btn');
+            carouselBtns.forEach(btn => {
+                btn.style.background = config.primary_color || defaultConfig.primary_color;
+                btn.style.fontSize = `${baseSize}px`;
+            });
+            
+            const activeDot = document.querySelector('.dot.active');
+            if (activeDot) {
+                activeDot.style.background = config.primary_color || defaultConfig.primary_color;
+            }
+        }
+
+        function mapToCapabilities(config) {
+            return {
+                recolorables: [
+                    {
+                        get: () => config.primary_color || defaultConfig.primary_color,
+                        set: (value) => {
+                            if (window.elementSdk) {
+                                window.elementSdk.setConfig({ primary_color: value });
+                            }
+                        }
+                    },
+                    {
+                        get: () => config.card_background || defaultConfig.card_background,
+                        set: (value) => {
+                            if (window.elementSdk) {
+                                window.elementSdk.setConfig({ card_background: value });
+                            }
+                        }
+                    },
+                    {
+                        get: () => config.text_color || defaultConfig.text_color,
+                        set: (value) => {
+                            if (window.elementSdk) {
+                                window.elementSdk.setConfig({ text_color: value });
+                            }
+                        }
+                    }
+                ],
+                borderables: [],
+                fontEditable: {
+                    get: () => config.font_family || defaultConfig.font_family,
+                    set: (value) => {
+                        if (window.elementSdk) {
+                            window.elementSdk.setConfig({ font_family: value });
+                        }
+                    }
+                },
+                fontSizeable: {
+                    get: () => config.font_size || defaultConfig.font_size,
+                    set: (value) => {
+                        if (window.elementSdk) {
+                            window.elementSdk.setConfig({ font_size: value });
+                        }
+                    }
+                }
+            };
+        }
+
+        function mapToEditPanelValues(config) {
+            return new Map([
+                ["hero_title", config.hero_title || defaultConfig.hero_title],
+                ["hero_subtitle", config.hero_subtitle || defaultConfig.hero_subtitle],
+                ["os_section_title", config.os_section_title || defaultConfig.os_section_title],
+                ["linux_section_title", config.linux_section_title || defaultConfig.linux_section_title],
+                ["distro_section_title", config.distro_section_title || defaultConfig.distro_section_title],
+                ["slax_section_title", config.slax_section_title || defaultConfig.slax_section_title],
+                ["syntax_section_title", config.syntax_section_title || defaultConfig.syntax_section_title],
+                ["footer_cta", config.footer_cta || defaultConfig.footer_cta]
+            ]);
+        }
+
+        if (window.elementSdk) {
+            window.elementSdk.init({
+                defaultConfig,
+                onConfigChange,
+                mapToCapabilities,
+                mapToEditPanelValues
+            });
+        }
+
+        initCarousel();
+    </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a16198626fedf20',t:'MTc2MzYyMjMzNC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
